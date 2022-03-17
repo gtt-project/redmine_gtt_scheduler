@@ -3,9 +3,12 @@ class ScheduleIssuesController < ApplicationController
   before_action :authorize
 
   def show
-    flash[:notice] = "Scheduled the issues"
-    # call the lib/redmine_gtt_scheduler/schedule_issues.rb method to schedule the issues
-    RedmineGttScheduler::ScheduleIssues.(@project)
+    begin
+      issues_scheduled = RedmineGttScheduler::ScheduleIssues.(@project)
+      flash[:notice] = "Scheduled #{issues_scheduled} issues"
+    rescue => e
+      flash[:error] = e.message
+    end
     redirect_to :back
   end
 

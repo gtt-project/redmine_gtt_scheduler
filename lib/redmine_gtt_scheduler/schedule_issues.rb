@@ -10,54 +10,50 @@ module RedmineGttScheduler
       @project = project
     end
 
+    def has_job_tracker?
+      @project.trackers.where(name: "[VRP] Job").exists?
+    end
+
+    def has_shipment_tracker?
+      @project.trackers.where(name: "[VRP] Shipment").exists?
+    end
+
+    def has_break_tracker?
+      @project.trackers.where(name: "[VRP] Break").exists?
+    end
+
+    def has_service_tracker?
+      @project.trackers.where(name: "[VRP] Service").exists?
+    end
+
     def call
-      # get the list of issues with tracker "[VRP] Service"
-      service_issues = if @project.trackers.where(name: '[VRP] Service').any?
-        @project.issues.where(
-          'tracker_id = ?',
-          Tracker.where(name: '[VRP] Service').first.id
-        )
-      else
-        []
+      # check if all the trackers are present, if not then raise an error
+      if !has_job_tracker? || !has_shipment_tracker? || !has_break_tracker? || !has_service_tracker?
+        raise "You need to have all the VRP trackers present in the project to use the scheduler."
       end
 
-      # get the list of issues with tracker "[VRP] Job"
-      job_issues = if @project.trackers.where(name: '[VRP] Job').any?
-        @project.issues.where(
-          'tracker_id = ?',
-          Tracker.where(name: '[VRP] Job').first.id
-        )
-      else
-        []
-      end
+      service_issues = @project.issues.where(
+        'tracker_id = ?',
+        Tracker.where(name: '[VRP] Service').first.id
+      )
 
-      # get the list of issues with tracker "[VRP] Shipment"
-      shipment_issues = if @project.trackers.where(name: '[VRP] Shipment').any?
-        @project.issues.where(
-          'tracker_id = ?',
-          Tracker.where(name: '[VRP] Shipment').first.id
-        )
-      else
-        []
-      end
+      job_issues = @project.issues.where(
+        'tracker_id = ?',
+        Tracker.where(name: '[VRP] Job').first.id
+      )
 
-      # get the list of issues with tracker "[VRP] Break"
-      break_issues = if @project.trackers.where(name: '[VRP] Break').any?
-        @project.issues.where(
-          'tracker_id = ?',
-          Tracker.where(name: '[VRP] Break').first.id
-        )
-      else
-        []
-      end
+      shipment_issues = @project.issues.where(
+        'tracker_id = ?',
+        Tracker.where(name: '[VRP] Shipment').first.id
+      )
 
-      # TEMP: add the job issues as the subtask of service issues
-      service_issues.each do |service_issue|
-        job_issues.each do |job_issue|
-          job_issue.parent_issue_id = service_issue.id
-          job_issue.save
-        end
-      end
+      break_issues = @project.issues.where(
+        'tracker_id = ?',
+        Tracker.where(name: '[VRP] Break').first.id
+      )
+
+      # call the method to make call to get the solution for the VRP
+      RedmineGttScheduler::VrpSolution.(@project)
     end
   end
 end
