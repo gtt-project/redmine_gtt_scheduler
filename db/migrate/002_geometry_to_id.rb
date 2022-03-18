@@ -1,13 +1,22 @@
-class CoordinatesToId < ActiveRecord::Migration[5.2]
+class GeometryToId < ActiveRecord::Migration[5.2]
   def up
     execute <<-SQL
-      CREATE OR REPLACE FUNCTION coord_to_id(latitude FLOAT, longitude FLOAT)
+      CREATE OR REPLACE FUNCTION geom_to_id(geom GEOMETRY)
       RETURNS BIGINT
       AS $$
       DECLARE
         lat_prefix CHAR(1) := '0';
         lon_prefix CHAR(1) := '0';
+        latitude FLOAT;
+        longitude FLOAT;
       BEGIN
+        IF ST_GeometryType(geom) != 'ST_Point' THEN
+          RAISE EXCEPTION 'The input geometry must be a point';
+        END IF;
+
+        latitude := ST_Y(geom);
+        longitude := ST_X(geom);
+
         IF latitude < 0 THEN
           lat_prefix := '1';
         END IF;
@@ -28,7 +37,7 @@ class CoordinatesToId < ActiveRecord::Migration[5.2]
 
   def down
     execute <<-SQL
-      DROP FUNCTION IF EXISTS coord_to_id(latitude FLOAT, longitude FLOAT);
+      DROP FUNCTION IF EXISTS geom_to_id(geom GEOMETRY);
     SQL
   end
 end

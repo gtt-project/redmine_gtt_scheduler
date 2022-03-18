@@ -15,42 +15,41 @@ module RedmineGttScheduler
         <<-SQL
           SELECT * FROM vrp_vroomPlain(
             $$
-            SELECT I.id AS id, coord_to_id(ST_Y(geom), ST_X(geom)) AS location_id
+            SELECT I.id AS id, geom_to_id(geom) AS location_id
             FROM issues I JOIN trackers T ON(I.tracker_id = T.id) WHERE T.name = '[VRP] Job'
             $$,
             NULL,
             $$
             SELECT
               I.id AS id,
-              coord_to_id(ST_Y(ST_StartPoint(geom)), ST_X(ST_StartPoint(geom))) AS p_location_id,
-              coord_to_id(ST_Y(ST_EndPoint(geom)), ST_X(ST_EndPoint(geom))) AS d_location_id
+              geom_to_id(ST_StartPoint(geom)) AS p_location_id,
+              geom_to_id(ST_EndPoint(geom)) AS d_location_id
               FROM issues I JOIN trackers T ON(I.tracker_id = T.id) WHERE T.name = '[VRP] Shipment'
             $$,
             NULL,
             $$
             SELECT
               I.id AS id,
-              coord_to_id(ST_Y(ST_StartPoint(geom)), ST_X(ST_StartPoint(geom))) AS start_id,
-              coord_to_id(ST_Y(ST_EndPoint(geom)), ST_X(ST_EndPoint(geom))) AS end_id
+              geom_to_id(ST_StartPoint(geom)) AS start_id,
+              geom_to_id(ST_EndPoint(geom)) AS end_id
               FROM issues I JOIN trackers T ON(I.tracker_id = T.id) WHERE T.name = '[VRP] Service'
             $$,
             NULL,
             NULL,
             $$
-            SELECT start_id, end_id, cost::INTEGER AS duration FROM vrp_costMatrix(
-              $inner$
+            WITH points AS (
               SELECT
-                coord_to_id(ST_Y(ST_StartPoint(geom)), ST_X(ST_StartPoint(geom))) AS id,
-                ST_X(ST_StartPoint(geom)) AS x, ST_Y(ST_StartPoint(geom)) AS y FROM issues I JOIN trackers T
+                geom_to_id(ST_StartPoint(geom)) AS id,
+                ST_StartPoint(geom) AS geom FROM issues I JOIN trackers T
                 ON(I.tracker_id = T.id) WHERE T.name IN ('[VRP] Service', '[VRP] Shipment') UNION
               SELECT
-                coord_to_id(ST_Y(ST_EndPoint(geom)), ST_X(ST_EndPoint(geom))) AS id,
-                ST_X(ST_EndPoint(geom)) AS x, ST_Y(ST_EndPoint(geom)) AS y FROM issues I JOIN trackers T
+                geom_to_id(ST_EndPoint(geom)) AS id,
+                ST_EndPoint(geom) AS geom FROM issues I JOIN trackers T
                 ON(I.tracker_id = T.id) WHERE T.name IN ('[VRP] Service', '[VRP] Shipment') UNION
               SELECT
-                coord_to_id(ST_Y(geom), ST_X(geom)) AS id, ST_X(geom) AS x, ST_Y(geom) AS y FROM issues I
+                geom_to_id(geom) AS id, geom AS geom FROM issues I
                 JOIN trackers T ON(I.tracker_id = T.id) WHERE T.name IN ('[VRP] Job')
-              $inner$)
+            ) SELECT A.id AS start_id, B.id AS end_id, ST_DistanceSphere(A.geom, B.geom)::INTEGER AS duration FROM points A, points B
             $$
           ) WHERE vehicle_id > 0 AND step_type > 1 AND step_type < 6
         SQL
