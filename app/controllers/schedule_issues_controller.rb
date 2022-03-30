@@ -4,8 +4,8 @@ class ScheduleIssuesController < ApplicationController
 
   def show
     begin
-      issues_scheduled = RedmineGttScheduler::ScheduleIssues.(@project)
-      flash[:notice] = "Scheduled #{issues_scheduled} issues"
+      (scheduled, unscheduled) = RedmineGttScheduler::ScheduleIssues.(@project)
+      flash[:notice] = "Scheduled #{scheduled} issues, #{unscheduled} issues unscheduled."
     rescue => e
       flash[:error] = e.message
     end

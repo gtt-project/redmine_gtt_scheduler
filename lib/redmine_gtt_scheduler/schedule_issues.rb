@@ -53,7 +53,7 @@ module RedmineGttScheduler
       )
 
       # call the method to make call to get the solution for the VRP
-      RedmineGttScheduler::VrpSolution.(@project)
+      return RedmineGttScheduler::VrpSolution.(@project)
     end
   end
 end
