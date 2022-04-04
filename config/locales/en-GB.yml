@@ -1,5 +1,5 @@
-# English strings go here for Rails i18n
-en:
+# British strings go here for Rails i18n
+en-GB:
   button_schedule_issues: Schedule Issues
 
   field_start_date: "Start datetime"

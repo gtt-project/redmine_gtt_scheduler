@@ -13,12 +13,14 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
   requires_redmine :version_or_higher => '4.0.0'
 
   requires_redmine_plugin :redmine_gtt, :version_or_higher => '2.1.0'
+  requires_redmine_plugin :redmine_datetime_custom_field, :version_or_higher => '1.0.4'
 
   project_module :gtt_scheduler do
 
-    permission :view_gtt_scheduler, {
-      gtt_scheduler: %i(create show status)
-    }, require: :member, read: true
-
   end
+end
+
+Rails.application.config.to_prepare do
+  require_dependency 'redmine_gtt_scheduler/issue_patch'
+  require_dependency 'redmine_gtt_scheduler/issues_helper_patch'
 end
