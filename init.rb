@@ -20,7 +20,10 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
   end
 end
 
+require_dependency 'redmine_gtt_scheduler/hooks'
+
 Rails.application.config.to_prepare do
   require_dependency 'redmine_gtt_scheduler/issue_patch'
+  require_dependency 'redmine_gtt_scheduler/i18n_patch'
   require_dependency 'redmine_gtt_scheduler/issues_helper_patch'
 end

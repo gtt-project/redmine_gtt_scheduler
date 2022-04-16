@@ -4,3 +4,8 @@ en-GB:
 
   field_start_date: "Start datetime"
   field_due_date: "Due datetime"
+
+  time:
+    formats:
+      # display seconds in time
+      time: "%I:%M:%S %p"

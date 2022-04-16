@@ -189,7 +189,6 @@ module RedmineGttScheduler
       results.each do |result|
         issue = Issue.find(result['task_id'])
         if result['vehicle_id'] != -1
-          print "FFF #{result['vehicle_id']} #{issue.id} #{issue.subject} #{issue.start_date} #{issue.due_date}\n"
           issue.parent_issue_id = result['vehicle_id']
           issue.save
         end
