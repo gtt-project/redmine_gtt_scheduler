@@ -14,10 +14,6 @@ class ScheduleIssuesController < ApplicationController
 
   private
 
-  def find_project_by_project_id
-    @project = Project.find params[:project_id]
-  end
-
   def authorize
     if User.current.allowed_to?(:manage_members, @project, global: false)
       true

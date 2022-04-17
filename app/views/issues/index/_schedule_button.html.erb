@@ -1,5 +1,7 @@
+<% if params.has_key?(:project_id) %>
 <%= form_tag(project_schedule_issues_path(@project), method: :get) do %>
 <p class="buttons">
   <%= submit_tag l(:button_schedule_issues), name: nil %>
 </p>
+<% end %>
 <% end %>

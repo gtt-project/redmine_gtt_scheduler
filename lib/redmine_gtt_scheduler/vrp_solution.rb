@@ -52,12 +52,12 @@ module RedmineGttScheduler
           -- Jobs SQL
           $JOBS$
           WITH custom_table AS (
-            SELECT * FROM crosstab(
-              'SELECT customized_id, name, array_agg(CASE WHEN value = $$$$ THEN NULL ELSE value END)
-              FROM custom_values CV
-              JOIN custom_fields F ON CV.custom_field_id=F.id
-              GROUP BY customized_id, name ORDER BY customized_id, name'
-            ) AS (id INT, skills TEXT[], volume TEXT[], weight TEXT[])
+              SELECT * FROM crosstab(
+                'SELECT customized_id, name, array_agg(CASE WHEN value = $$$$ THEN NULL ELSE value END)
+                FROM custom_values CV
+                JOIN custom_fields F ON CV.custom_field_id=F.id AND F.name in ($$Skills$$, $$Weight$$, $$Volume$$)
+                GROUP BY customized_id, name ORDER BY customized_id, name'
+              ) AS (id INT, skills TEXT[], volume TEXT[], weight TEXT[])
           )
           SELECT
             I.id AS id,
@@ -89,7 +89,7 @@ module RedmineGttScheduler
             SELECT * FROM crosstab(
               'SELECT customized_id, name, array_agg(CASE WHEN value = $$$$ THEN NULL ELSE value END)
               FROM custom_values CV
-              JOIN custom_fields F ON CV.custom_field_id=F.id
+              JOIN custom_fields F ON CV.custom_field_id=F.id AND F.name in ($$Skills$$, $$Weight$$, $$Volume$$)
               GROUP BY customized_id, name ORDER BY customized_id, name'
             ) AS (id INT, skills TEXT[], volume TEXT[], weight TEXT[])
           )
@@ -124,7 +124,7 @@ module RedmineGttScheduler
             SELECT * FROM crosstab(
               'SELECT customized_id, name, array_agg(CASE WHEN value = $$$$ THEN NULL ELSE value END)
               FROM custom_values CV
-              JOIN custom_fields F ON CV.custom_field_id=F.id
+              JOIN custom_fields F ON CV.custom_field_id=F.id AND F.name in ($$Skills$$, $$Weight$$, $$Volume$$, $$Speed Factor$$, $$Max Tasks$$, $$Vehicle$$)
               GROUP BY customized_id, name ORDER BY customized_id, name'
             ) AS (id INT, max_tasks TEXT[], skills TEXT[], speed_factor TEXT[], vehicle TEXT[], volume TEXT[], weight TEXT[])
           )
