@@ -23,6 +23,7 @@ class SchedulerResourcesControllerTest < Redmine::ControllerTest
 
     assert_response :success
     assert_select 'td', text: resource.name
+    assert_select 'a[data-method=?]', 'delete'
   end
 
   test 'create adds a resource' do

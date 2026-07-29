@@ -61,6 +61,11 @@ class SchedulerRunsControllerTest < Redmine::ControllerTest
 
     assert_response :success
     assert_select 'h3', text: resource.name
+    # rails-ujs turns these into POSTs; core uses the same pattern.
+    assert_select "a[data-method=post][href=?]",
+                  "/projects/#{@project.identifier}/scheduler_runs/#{run.id}/apply"
+    assert_select "a[data-method=post][href=?]",
+                  "/projects/#{@project.identifier}/scheduler_runs/#{run.id}/discard"
   end
 
   test 'discard marks a proposed run as discarded' do
