@@ -1,11 +1,47 @@
-# English strings go here for Rails i18n
 en:
-  button_schedule_issues: Schedule Issues
-
-  field_start_date: "Start datetime"
-  field_due_date: "Due datetime"
-
-  time:
-    formats:
-      # display seconds in time
-      time: "%I:%M:%S %p"
+  label_scheduler: Scheduler
+  label_scheduler_run: Scheduler run
+  label_scheduler_run_new: New run
+  label_scheduler_resources: Resources
+  label_scheduler_resource_new: New resource
+  label_scheduler_resource_edit: Edit resource
+  label_scheduler_assignments: Assignments
+  label_scheduler_unassigned: Not assigned by the solver
+  label_scheduler_excluded: Not part of the problem
+  label_scheduler_travel: Travel
+  label_scheduler_status_draft: Draft
+  label_scheduler_status_solving: Solving
+  label_scheduler_status_proposed: Proposed
+  label_scheduler_status_applied: Applied
+  label_scheduler_status_failed: Failed
+  label_scheduler_status_discarded: Discarded
+  label_scheduler_vroom_url: VROOM server URL
+  label_scheduler_default_service: Default service time (minutes)
+  label_scheduler_timeout: Solver timeout (seconds)
+  field_scheduled_on: Planning day
+  field_work_starts: Work starts
+  field_work_ends: Work ends
+  field_start_lng: Start longitude
+  field_start_lat: Start latitude
+  field_end_lng: End longitude
+  field_end_lat: End latitude
+  field_active: Active
+  button_scheduler_solve: Solve
+  button_scheduler_apply: Apply to issues
+  button_scheduler_discard: Discard
+  notice_unable_delete_scheduler_resource: This resource is used by an optimization run and cannot be deleted.
+  notice_scheduler_run_started: The optimization run was started.
+  notice_scheduler_run_applied: The schedule was applied to the issues.
+  notice_scheduler_run_discarded: The run was discarded.
+  text_scheduler_run_scope_hint: All open issues of this project with a location are planned, using all active resources.
+  text_scheduler_run_in_progress: The solver is running. Reload this page in a moment.
+  text_scheduler_apply_confirm: This updates dates, times, and assignees of the scheduled issues. Continue?
+  text_scheduler_not_proposed: Only proposed runs can be applied.
+  text_scheduler_not_discardable: This run can no longer be discarded.
+  text_scheduler_not_editable: "You are not allowed to edit these issues: %{ids}"
+  text_scheduler_applied_note: "Scheduled by scheduler run #%{id}"
+  text_scheduler_excluded_unsupported_geometry: unsupported geometry
+  text_scheduler_excluded_outside_planning_day: outside the planning day
+  text_scheduler_resource_end_hint: Leave the end location empty to return to the start location.
+  text_scheduler_vroom_url_hint: Base URL of the vroom-express service, for example http://vroom:3000
+  text_scheduler_default_service_hint: Used when an issue has no estimated hours.

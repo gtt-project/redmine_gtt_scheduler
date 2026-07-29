@@ -1,0 +1,14 @@
+<p>
+  <label><%= l(:label_scheduler_vroom_url) %></label>
+  <%= text_field_tag 'settings[vroom_url]', RedmineGttScheduler.settings['vroom_url'], size: 60 %>
+  <em class="info"><%= l(:text_scheduler_vroom_url_hint) %></em>
+</p>
+<p>
+  <label><%= l(:label_scheduler_default_service) %></label>
+  <%= text_field_tag 'settings[default_service_minutes]', RedmineGttScheduler.settings['default_service_minutes'], size: 6 %>
+  <em class="info"><%= l(:text_scheduler_default_service_hint) %></em>
+</p>
+<p>
+  <label><%= l(:label_scheduler_timeout) %></label>
+  <%= text_field_tag 'settings[solver_timeout]', RedmineGttScheduler.settings['solver_timeout'], size: 6 %>
+</p>

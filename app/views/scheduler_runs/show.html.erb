@@ -1,0 +1,79 @@
+<div class="contextual">
+  <% if User.current.allowed_to?(:manage_scheduler, @project) && @run.proposed? %>
+    <%= link_to l(:button_scheduler_apply), apply_project_scheduler_run_path(@project, @run),
+                method: :post, class: 'icon icon-checked',
+                data: {confirm: l(:text_scheduler_apply_confirm)} %>
+  <% end %>
+  <% if User.current.allowed_to?(:manage_scheduler, @project) && @run.discardable? %>
+    <%= link_to l(:button_scheduler_discard), discard_project_scheduler_run_path(@project, @run),
+                method: :post, class: 'icon icon-del' %>
+  <% end %>
+</div>
+
+<h2><%= l(:label_scheduler_run) %> #<%= @run.id %></h2>
+
+<p>
+  <strong><%= l(:field_scheduled_on) %>:</strong> <%= format_date(@run.scheduled_on) %>
+  &nbsp; <%= scheduler_run_status(@run) %>
+</p>
+
+<% if @run.failed? && @run.error_message.present? %>
+  <div class="flash error"><%= @run.error_message %></div>
+<% end %>
+
+<% if @run.solving? || @run.draft? %>
+  <p class="info"><%= l(:text_scheduler_run_in_progress) %></p>
+<% end %>
+
+<% @assignments.group_by(&:scheduler_resource).each do |resource, assignments| %>
+  <h3><%= resource.name %></h3>
+  <table class="list">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th><%= l(:field_issue) %></th>
+        <th><%= l(:field_start_time) %></th>
+        <th><%= l(:field_due_time) %></th>
+        <th><%= l(:label_scheduler_travel) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% assignments.each do |assignment| %>
+        <tr>
+          <td><%= assignment.sequence %></td>
+          <td><%= link_to_issue(assignment.issue) if assignment.issue %></td>
+          <td><%= scheduler_time(assignment.starts_at) %></td>
+          <td><%= scheduler_time(assignment.ends_at) %></td>
+          <td><%= scheduler_travel(assignment.travel_seconds) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<% if @unassigned_issues.any? %>
+  <h3><%= l(:label_scheduler_unassigned) %></h3>
+  <ul>
+    <% @unassigned_issues.each do |issue| %>
+      <li><%= link_to_issue(issue) %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<% if @run.excluded.any? %>
+  <h3><%= l(:label_scheduler_excluded) %></h3>
+  <ul>
+    <% @run.excluded.each do |issue_id, reason| %>
+      <li>
+        <% if (issue = @excluded_issues[issue_id.to_i]) %>
+          <%= link_to_issue(issue) %>
+        <% else %>
+          #<%= issue_id %>
+        <% end %>
+        (<%= l(:"text_scheduler_excluded_#{reason}", default: reason.to_s.humanize) %>)
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<% html_title "#{l(:label_scheduler_run)} ##{@run.id}" %>

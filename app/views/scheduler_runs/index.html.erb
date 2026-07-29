@@ -1,0 +1,39 @@
+<div class="contextual">
+  <% if User.current.allowed_to?(:manage_scheduler, @project) %>
+    <%= link_to l(:label_scheduler_run_new), new_project_scheduler_run_path(@project), class: 'icon icon-add' %>
+    <%= link_to l(:label_scheduler_resources), project_scheduler_resources_path(@project), class: 'icon icon-group' %>
+  <% end %>
+</div>
+
+<h2><%= l(:label_scheduler) %></h2>
+
+<% if @runs.any? %>
+  <table class="list">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th><%= l(:field_scheduled_on) %></th>
+        <th><%= l(:field_status) %></th>
+        <th><%= l(:field_author) %></th>
+        <th><%= l(:label_scheduler_assignments) %></th>
+        <th><%= l(:field_created_on) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @runs.each do |run| %>
+        <tr>
+          <td><%= link_to "##{run.id}", project_scheduler_run_path(@project, run) %></td>
+          <td><%= format_date(run.scheduled_on) %></td>
+          <td><%= scheduler_run_status(run) %></td>
+          <td><%= run.user %></td>
+          <td><%= run.scheduler_assignments.count %></td>
+          <td><%= format_time(run.created_at) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>
+
+<% html_title l(:label_scheduler) %>

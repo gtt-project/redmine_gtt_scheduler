@@ -1,0 +1,39 @@
+<div class="contextual">
+  <%= link_to l(:label_scheduler_resource_new), new_project_scheduler_resource_path(@project), class: 'icon icon-add' %>
+</div>
+
+<h2><%= l(:label_scheduler_resources) %></h2>
+
+<% if @resources.any? %>
+  <table class="list">
+    <thead>
+      <tr>
+        <th><%= l(:field_name) %></th>
+        <th><%= l(:field_user) %></th>
+        <th><%= l(:field_work_starts) %></th>
+        <th><%= l(:field_work_ends) %></th>
+        <th><%= l(:field_active) %></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @resources.each do |resource| %>
+        <tr>
+          <td><%= resource.name %></td>
+          <td><%= resource.user %></td>
+          <td><%= resource.work_starts %></td>
+          <td><%= resource.work_ends %></td>
+          <td><%= checked_image resource.active? %></td>
+          <td class="buttons">
+            <%= link_to l(:button_edit), edit_project_scheduler_resource_path(@project, resource), class: 'icon icon-edit' %>
+            <%= delete_link project_scheduler_resource_path(@project, resource) %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>
+
+<% html_title l(:label_scheduler_resources) %>
