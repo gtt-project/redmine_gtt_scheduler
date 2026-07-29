@@ -41,7 +41,7 @@ class SchedulerRun < ApplicationRecord
   end
 
   def resource_selection?
-    scheduler_run_resources.any?
+    scheduler_run_resources.exists?
   end
 
   def excluded

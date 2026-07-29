@@ -20,8 +20,11 @@ class SchedulerRunsController < ApplicationController
     # table always line up with each other. Note the map does not follow these
     # colours: redmine_gtt's renderer styles all features alike and ignores the
     # per-feature colour in the GeoJSON.
+    # A missing resource should not normally happen (the association is
+    # required), but the view tolerates it, so sort such a group last instead of
+    # relying on nil coercing to 0 and quietly sorting first.
     @assignments_by_resource = @assignments.group_by(&:scheduler_resource)
-                                           .sort_by { |resource, _| resource&.id.to_i }
+                                           .sort_by { |resource, _| [resource ? 0 : 1, resource&.id || 0] }
     @route_geojson = RedmineGttScheduler::Scheduler::RouteGeoJson.call(@assignments) if @assignments.any?
     @unassigned_issues = Issue.where(id: @run.unassigned_issue_ids).visible
     @unassigned_reasons = @unassigned_issues.any? ? unassigned_reasons : {}
