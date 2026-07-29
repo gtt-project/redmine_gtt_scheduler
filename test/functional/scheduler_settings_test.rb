@@ -19,6 +19,14 @@ class SchedulerSettingsTest < Redmine::ControllerTest
     assert_select 'input[name=?]', 'settings[solver_timeout]'
   end
 
+  # Redmine itself usually occupies port 3000, so the default must not be
+  # localhost:3000 or an unconfigured scheduler would post to Redmine.
+  test 'the default solver URL does not point at Redmine itself' do
+    Setting.plugin_redmine_gtt_scheduler = {}
+
+    assert_equal 'http://vroom:3000', RedmineGttScheduler.vroom_url
+  end
+
   test 'saving the plugin settings works' do
     post :plugin, params: {
       id: 'redmine_gtt_scheduler',

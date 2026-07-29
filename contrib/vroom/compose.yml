@@ -26,9 +26,10 @@ services:
       # it is missing and touches access.log on every start.
       - ./conf:/conf
     ports:
-      # Reachable from the Redmine host only. Use the compose network
-      # instead when Redmine runs in the same stack.
-      - "127.0.0.1:3000:3000"
+      # Published on 3100 because Redmine itself commonly runs on 3000.
+      # Reachable from the Redmine host only; when Redmine shares this
+      # network, use http://vroom:3000 and drop this mapping.
+      - "127.0.0.1:3100:3000"
     depends_on:
       - osrm
     restart: unless-stopped

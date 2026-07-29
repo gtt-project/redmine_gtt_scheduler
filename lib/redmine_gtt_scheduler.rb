@@ -19,7 +19,7 @@ module RedmineGttScheduler
   end
 
   def self.vroom_url
-    settings['vroom_url'].presence || 'http://localhost:3000'
+    settings['vroom_url'].presence || 'http://vroom:3000'
   end
 
   def self.default_service_seconds

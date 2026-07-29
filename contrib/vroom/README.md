@@ -50,7 +50,7 @@ OSRM_BASENAME=japan-latest docker compose up -d
 ## 3. Check it responds
 
 ```bash
-curl -s -X POST http://localhost:3000 -H 'Content-Type: application/json' -d '{"vehicles":[{"id":1,"start":[139.7671,35.6812],"end":[139.7671,35.6812]}],"jobs":[{"id":1,"location":[139.7454,35.6586],"service":900}]}'
+curl -s -X POST http://localhost:3100 -H 'Content-Type: application/json' -d '{"vehicles":[{"id":1,"start":[139.7671,35.6812],"end":[139.7671,35.6812]}],"jobs":[{"id":1,"location":[139.7454,35.6586],"service":900}]}'
 ```
 
 A `"code": 0` response with one route means the stack is working.
@@ -58,9 +58,9 @@ A `"code": 0` response with one route means the stack is working.
 ## 4. Point the plugin at it
 
 In Redmine, go to Administration, Plugins, Redmine GTT Scheduler and set
-the VROOM server URL. Use the compose service name (`http://vroom:3000`)
-when Redmine runs in the same Docker network, or the host address
-otherwise.
+the VROOM server URL. Use the compose service name (`http://vroom:3000`,
+which is the default) when Redmine runs in the same Docker network, or
+`http://localhost:3100` when reaching it from the Docker host.
 
 ## Notes
 
