@@ -1,0 +1,46 @@
+ja:
+  label_scheduler: スケジューラー
+  label_scheduler_run: 最適化実行
+  label_scheduler_run_new: 新しい実行
+  label_scheduler_resources: リソース
+  label_scheduler_resource_new: 新しいリソース
+  label_scheduler_resource_edit: リソースの編集
+  label_scheduler_assignments: 割り当て
+  label_scheduler_unassigned: ソルバーが割り当てなかったチケット
+  label_scheduler_excluded: 対象外のチケット
+  label_scheduler_travel: 移動
+  label_scheduler_status_draft: 下書き
+  label_scheduler_status_solving: 計算中
+  label_scheduler_status_proposed: 提案
+  label_scheduler_status_applied: 適用済み
+  label_scheduler_status_failed: 失敗
+  label_scheduler_status_discarded: 破棄
+  label_scheduler_vroom_url: VROOMサーバーURL
+  label_scheduler_default_service: デフォルト作業時間（分）
+  label_scheduler_timeout: ソルバーのタイムアウト（秒）
+  field_scheduled_on: 計画日
+  field_work_starts: 勤務開始
+  field_work_ends: 勤務終了
+  field_start_lng: 開始地点の経度
+  field_start_lat: 開始地点の緯度
+  field_end_lng: 終了地点の経度
+  field_end_lat: 終了地点の緯度
+  field_active: 有効
+  button_scheduler_solve: 計算する
+  button_scheduler_apply: チケットに適用
+  button_scheduler_discard: 破棄
+  notice_scheduler_run_started: 最適化を開始しました。
+  notice_scheduler_run_applied: スケジュールをチケットに適用しました。
+  notice_scheduler_run_discarded: 実行を破棄しました。
+  text_scheduler_run_scope_hint: このプロジェクトの位置情報を持つ未完了チケットすべてを、有効なリソース全員で計画します。
+  text_scheduler_run_in_progress: 計算中です。しばらくしてからページを再読み込みしてください。
+  text_scheduler_apply_confirm: 対象チケットの日付・時刻・担当者を更新します。続行しますか？
+  text_scheduler_not_proposed: 適用できるのは「提案」状態の実行のみです。
+  text_scheduler_not_discardable: この実行は破棄できません。
+  text_scheduler_not_editable: "次のチケットを編集する権限がありません: %{ids}"
+  text_scheduler_applied_note: "スケジューラー実行 #%{id} により設定"
+  text_scheduler_excluded_unsupported_geometry: 未対応のジオメトリ
+  text_scheduler_excluded_outside_planning_day: 計画日の範囲外
+  text_scheduler_resource_end_hint: 終了地点を空にすると開始地点に戻ります。
+  text_scheduler_vroom_url_hint: vroom-expressサービスのベースURL（例 http://vroom:3000）
+  text_scheduler_default_service_hint: チケットに予定工数がない場合に使用します。

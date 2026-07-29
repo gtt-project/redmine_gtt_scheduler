@@ -1,0 +1,16 @@
+<%= error_messages_for @resource %>
+<div class="box tabular">
+  <p><%= f.text_field :name, required: true, label: :field_name %></p>
+  <p><%= f.select :user_id,
+                  @project.users.sorted.map { |u| [u.name, u.id] },
+                  {include_blank: true},
+                  label: :field_user %></p>
+  <p><%= f.text_field :start_lng, required: true, size: 12, label: :field_start_lng %></p>
+  <p><%= f.text_field :start_lat, required: true, size: 12, label: :field_start_lat %></p>
+  <p><%= f.text_field :end_lng, size: 12, label: :field_end_lng %></p>
+  <p><%= f.text_field :end_lat, size: 12, label: :field_end_lat %></p>
+  <p class="info"><%= l(:text_scheduler_resource_end_hint) %></p>
+  <p><%= f.time_field :work_starts, label: :field_work_starts %></p>
+  <p><%= f.time_field :work_ends, label: :field_work_ends %></p>
+  <p><%= f.check_box :active, label: :field_active %></p>
+</div>

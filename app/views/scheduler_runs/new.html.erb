@@ -1,0 +1,12 @@
+<h2><%= l(:label_scheduler_run_new) %></h2>
+
+<%= labelled_form_for @run, url: project_scheduler_runs_path(@project) do |f| %>
+  <%= error_messages_for @run %>
+  <div class="box tabular">
+    <p><%= f.date_field :scheduled_on, required: true, label: :field_scheduled_on %></p>
+    <p class="info"><%= l(:text_scheduler_run_scope_hint) %></p>
+  </div>
+  <%= submit_tag l(:button_scheduler_solve) %>
+<% end %>
+
+<% html_title l(:label_scheduler_run_new) %>
