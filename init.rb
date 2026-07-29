@@ -13,7 +13,9 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
 
   settings partial: 'settings/redmine_gtt_scheduler',
            default: {
-             'vroom_url' => 'http://localhost:3000',
+             # Deliberately not localhost:3000: that is Redmine's own port in
+             # most setups, so an unconfigured scheduler would post to Redmine.
+             'vroom_url' => 'http://vroom:3000',
              'default_service_minutes' => '30',
              'solver_timeout' => '60'
            }
