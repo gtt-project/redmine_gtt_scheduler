@@ -26,7 +26,7 @@ class SchedulerSettingsTest < Redmine::ControllerTest
                  'solver_timeout' => '90'}
     }
 
-    assert_redirected_to '/settings/plugin/redmine_gtt_scheduler'
+    assert_redirected_to controller: 'settings', action: 'plugin', id: 'redmine_gtt_scheduler'
     assert_equal 'http://vroom:3000', RedmineGttScheduler.vroom_url
     assert_equal 2700, RedmineGttScheduler.default_service_seconds
   end
