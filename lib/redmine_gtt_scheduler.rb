@@ -1,4 +1,6 @@
 require_relative 'redmine_gtt_scheduler/project_extension'
+require_relative 'redmine_gtt_scheduler/scheduler/geometry'
+require_relative 'redmine_gtt_scheduler/scheduler/route_geo_json'
 require_relative 'redmine_gtt_scheduler/scheduler/problem'
 require_relative 'redmine_gtt_scheduler/scheduler/solution'
 require_relative 'redmine_gtt_scheduler/scheduler/adapter'
@@ -6,6 +8,7 @@ require_relative 'redmine_gtt_scheduler/scheduler/vroom_express_adapter'
 require_relative 'redmine_gtt_scheduler/scheduler/problem_builder'
 require_relative 'redmine_gtt_scheduler/scheduler/solver'
 require_relative 'redmine_gtt_scheduler/scheduler/solution_applier'
+require_relative 'redmine_gtt_scheduler/scheduler/unassigned_report'
 
 module RedmineGttScheduler
   class MissingDependencyError < StandardError; end

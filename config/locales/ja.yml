@@ -33,6 +33,15 @@ ja:
   notice_scheduler_run_started: 最適化を開始しました。
   notice_scheduler_run_applied: スケジュールをチケットに適用しました。
   notice_scheduler_run_discarded: 実行を破棄しました。
+  text_scheduler_resource_selection_hint: リソースをすべて未選択にすると、有効なリソース全員で計画します。
+  text_scheduler_no_resources: このプロジェクトには有効なリソースがないため、計画を実行できません。
+  text_scheduler_map_straight_legs: 線は各リソースの訪問順に地点を結んだものです。実際の道路経路ではなく直線です。
+  text_scheduler_unassigned_reasons_are_local: ソルバーは割り当てなかった理由を返さないため、以下は実行時のデータから推定した説明です。
+  text_scheduler_unassigned_outside_working_hours: 時間枠がどのリソースの勤務時間にも重なりません
+  text_scheduler_unassigned_service_longer_than_shift: 所要時間がどのリソースの勤務時間よりも長いです
+  text_scheduler_unassigned_no_room_in_plan: 他の作業と併せて収まりませんでした
+  text_scheduler_unassigned_unknown: 理由を推定できませんでした
+  text_scheduler_run_planned_with: "計画に使用したリソース: %{resources}"
   text_scheduler_run_scope_hint: このプロジェクトの位置情報を持つ未完了チケットすべてを、有効なリソース全員で計画します。
   text_scheduler_run_in_progress: 計算中です。しばらくしてからページを再読み込みしてください。
   text_scheduler_apply_confirm: 対象チケットの日付・時刻・担当者を更新します。続行しますか？
