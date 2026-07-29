@@ -29,6 +29,7 @@ en:
   button_scheduler_solve: Solve
   button_scheduler_apply: Apply to issues
   button_scheduler_discard: Discard
+  notice_unable_delete_scheduler_resource: This resource is used by an optimization run and cannot be deleted.
   notice_scheduler_run_started: The optimization run was started.
   notice_scheduler_run_applied: The schedule was applied to the issues.
   notice_scheduler_run_discarded: The run was discarded.

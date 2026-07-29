@@ -112,8 +112,7 @@ module RedmineGttScheduler
       end
 
       def combine_day(time_of_day)
-        hour, minute = time_of_day.to_s.split(':').map(&:to_i)
-        @day_start + hour.to_i.hours + minute.to_i.minutes
+        @day_start + (SchedulerResource.minutes_of_day(time_of_day) || 0).minutes
       end
 
       def epoch(time)

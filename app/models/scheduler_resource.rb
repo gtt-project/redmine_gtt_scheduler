@@ -24,11 +24,20 @@ class SchedulerResource < ApplicationRecord
     end_lng && end_lat ? [end_lng, end_lat] : start_location
   end
 
+  # Minutes since midnight, or nil when the value is not a valid time.
+  # Compared numerically because "8:00" sorts after "17:00" as a string.
+  def self.minutes_of_day(value)
+    match = TIME_OF_DAY.match(value.to_s)
+    match && (match[1].to_i * 60) + match[2].to_i
+  end
+
   private
 
   def validate_work_range
-    return unless work_starts.to_s.match?(TIME_OF_DAY) && work_ends.to_s.match?(TIME_OF_DAY)
+    starts = self.class.minutes_of_day(work_starts)
+    ends = self.class.minutes_of_day(work_ends)
+    return if starts.nil? || ends.nil?
 
-    errors.add(:work_ends, :invalid) if work_ends <= work_starts
+    errors.add(:work_ends, :invalid) if ends <= starts
   end
 end

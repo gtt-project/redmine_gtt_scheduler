@@ -29,6 +29,7 @@ ja:
   button_scheduler_solve: 計算する
   button_scheduler_apply: チケットに適用
   button_scheduler_discard: 破棄
+  notice_unable_delete_scheduler_resource: このリソースは最適化実行で使用されているため削除できません。
   notice_scheduler_run_started: 最適化を開始しました。
   notice_scheduler_run_applied: スケジュールをチケットに適用しました。
   notice_scheduler_run_discarded: 実行を破棄しました。

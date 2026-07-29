@@ -98,6 +98,17 @@ class ProblemBuilderTest < ActiveSupport::TestCase
     assert_equal Time.utc(2026, 8, 3, 16, 45).to_i, window[1]
   end
 
+  test 'single-digit working hours anchor the vehicle window correctly' do
+    place(Issue.find(1), 139.7, 35.68)
+    build_resource(@project, work_starts: '8:00', work_ends: '9:30')
+
+    problem = Builder.new(build_run(@project, @user, @day)).build
+    window = problem.vehicles.first.time_window
+
+    assert_equal Time.utc(2026, 8, 3, 8, 0).to_i, window[0]
+    assert_equal Time.utc(2026, 8, 3, 9, 30).to_i, window[1]
+  end
+
   test 'inactive resources are not used as vehicles' do
     place(Issue.find(1), 139.7, 35.68)
     build_resource(@project, active: false)

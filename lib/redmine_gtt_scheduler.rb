@@ -8,6 +8,8 @@ require_relative 'redmine_gtt_scheduler/scheduler/solver'
 require_relative 'redmine_gtt_scheduler/scheduler/solution_applier'
 
 module RedmineGttScheduler
+  class MissingDependencyError < StandardError; end
+
   def self.setup
     Project.include(ProjectExtension) unless Project.include?(ProjectExtension)
   end
@@ -31,8 +33,16 @@ module RedmineGttScheduler
   end
 
   # All schedule times are anchored in the same reference zone that
-  # redmine_issue_datetime uses for its date mirror.
+  # redmine_issue_datetime uses for its date mirror. That plugin is a hard
+  # dependency, so say so clearly instead of raising NameError deep in a
+  # helper when it is missing.
   def self.reference_zone
+    unless defined?(RedmineIssueDatetime)
+      raise MissingDependencyError,
+            'redmine_gtt_scheduler requires the redmine_issue_datetime plugin ' \
+            '(https://github.com/gtt-project/redmine_issue_datetime)'
+    end
+
     RedmineIssueDatetime.reference_zone
   end
 end

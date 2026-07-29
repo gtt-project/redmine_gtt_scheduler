@@ -87,5 +87,19 @@ class SchedulerResourcesControllerTest < Redmine::ControllerTest
     assert_no_difference 'SchedulerResource.count' do
       delete :destroy, params: {project_id: @project.identifier, id: resource.id}
     end
+    assert_nil flash[:notice]
+    assert flash[:error].present?
+  end
+
+  test 'single-digit working hours are accepted' do
+    assert_difference 'SchedulerResource.count' do
+      post :create, params: {
+        project_id: @project.identifier,
+        scheduler_resource: {
+          name: 'Crew D', start_lng: '139.70', start_lat: '35.68',
+          work_starts: '8:00', work_ends: '17:00'
+        }
+      }
+    end
   end
 end

@@ -33,10 +33,12 @@ class SchedulerResourcesController < ApplicationController
   end
 
   def destroy
-    if @resource.destroy
+    @resource.destroy
+    if @resource.destroyed?
       flash[:notice] = l(:notice_successful_delete)
     else
-      flash[:error] = @resource.errors.full_messages.to_sentence
+      flash[:error] = @resource.errors.full_messages.to_sentence.presence ||
+                      l(:notice_unable_delete_scheduler_resource)
     end
     redirect_to project_scheduler_resources_path(@project)
   end
