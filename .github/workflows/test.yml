@@ -1,0 +1,157 @@
+name: Test
+
+# This repository is public, so Actions minutes are free: run on PRs and on the
+# post-merge push to main. workflow_dispatch lets the check be run on demand.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  PLUGIN_NAME: redmine_gtt_scheduler
+
+jobs:
+  test:
+    name: redmine:${{ matrix.redmine_version }} ruby:${{ matrix.ruby_version }} postgis:${{ matrix.db_version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      # Redmine 7 (Rails 8.1) needs the 8.1 geo gem stack, driven per-row via
+      # redmine_gtt's GEM_* env vars; 6.x stays on the Gemfile defaults. rgeo
+      # must be >= 3.1 on Ruby 4: 3.0.1's native extension does not build.
+      GEM_RGEO_VERSION: ${{ matrix.rgeo || '3.0.1' }}
+      GEM_RGEO_ACTIVERECORD_VERSION: ${{ matrix.rgeo_ar || '8.0.0' }}
+      GEM_ACTIVERECORD_POSTGIS_ADAPTER_VERSION: ${{ matrix.postgis_adapter || '10.0.0' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { redmine_version: 6.1-stable, ruby_version: "3.4", db_version: 18-3.6 }
+          - { redmine_version: 7.0-stable, ruby_version: "3.4", db_version: 18-3.6, rgeo_ar: "8.1.0", postgis_adapter: "11.1.0" }
+          - { redmine_version: 7.0-stable, ruby_version: "4.0", db_version: 18-3.6, rgeo: "3.1.0", rgeo_ar: "8.1.0", postgis_adapter: "11.1.0" }
+
+    services:
+      postgres:
+        image: postgis/postgis:${{ matrix.db_version }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - name: Checkout Redmine
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: redmine/redmine
+          ref: ${{ matrix.redmine_version }}
+          path: redmine
+          persist-credentials: false
+
+      - name: Checkout redmine_gtt (required dependency)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: gtt-project/redmine_gtt
+          # Intentionally the mutable `next` branch: the Rails 8.1 / Redmine 7
+          # compatibility work lives there ahead of any tagged release. Pin to a
+          # tag once redmine_gtt stabilizes a release line.
+          ref: next
+          path: redmine/plugins/redmine_gtt
+          persist-credentials: false
+
+      - name: Checkout redmine_issue_datetime (required dependency)
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: gtt-project/redmine_issue_datetime
+          ref: main
+          path: redmine/plugins/redmine_issue_datetime
+          persist-credentials: false
+
+      - name: Checkout plugin
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: redmine/plugins/${{ env.PLUGIN_NAME }}
+          persist-credentials: false
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@d45b1a4e94b71acab930e56e79c6aa188764e7f9 # v1.316.0
+        with:
+          ruby-version: ${{ matrix.ruby_version }}
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 24
+
+      - name: Install native gem system libraries
+        run: |
+          sudo apt-get update --yes --quiet
+          sudo apt-get install --yes --quiet --no-install-recommends libpq-dev libgeos-dev
+
+      - name: Build redmine_gtt assets
+        working-directory: redmine/plugins/redmine_gtt
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        # The dependency's engine expects its built assets to be present at boot.
+        run: |
+          corepack enable pnpm
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Prepare Redmine source
+        working-directory: redmine
+        run: |
+          cat <<EOF > config/database.yml
+            test:
+              adapter: postgis
+              database: redmine
+              host: 127.0.0.1
+              username: postgres
+              password: postgres
+              encoding: utf8
+          EOF
+
+      - name: Install Ruby dependencies
+        working-directory: redmine
+        run: |
+          bundle config set --local without 'development'
+          bundle install --jobs=4 --retry=3
+
+      - name: Run Redmine rake tasks
+        env:
+          RAILS_ENV: test
+        working-directory: redmine
+        run: |
+          bundle exec rake generate_secret_token
+          bundle exec rake db:create db:migrate redmine:plugins:migrate
+
+      - name: Run tests
+        env:
+          RAILS_ENV: test
+        working-directory: redmine
+        run: |
+          bundle exec rails test \
+            plugins/${{ env.PLUGIN_NAME }}/test/unit \
+            plugins/${{ env.PLUGIN_NAME }}/test/functional
+
+      # Eager-load gate. Test and development environments load lazily, so a
+      # constant this plugin never references at boot can still break a
+      # production instance (which eager-loads) with a NameError. This task
+      # eager-loads everything and fails on exactly that class of mismatch.
+      - name: Check eager loading
+        env:
+          RAILS_ENV: test
+        working-directory: redmine
+        run: bundle exec rake zeitwerk:check
