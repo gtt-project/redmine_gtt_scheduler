@@ -1,0 +1,27 @@
+# vroom-express configuration for the example stack.
+#
+# Only the parts that differ from the image default are meaningful here:
+# the OSRM host is the compose service name rather than 0.0.0.0.
+# The upstream default file is at
+# https://github.com/VROOM-Project/vroom-express/blob/master/config.yml
+cliArgs:
+  geometry: false # phase 2 will request geometry per call for the map view
+  planmode: false
+  threads: 4
+  explore: 5
+  limit: '1mb'
+  logdir: '..'
+  logsize: '100M'
+  maxlocations: 1000 # raise if a single run plans more stops than this
+  maxvehicles: 200
+  override: ['c', 'g', 'l', 't', 'x']
+  path: ''
+  port: 3000
+  router: 'osrm'
+  timeout: 300000
+  baseurl: '/'
+routingServers:
+  osrm:
+    car:
+      host: 'osrm'
+      port: '5000'

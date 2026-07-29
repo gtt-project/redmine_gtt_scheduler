@@ -1,0 +1,34 @@
+# Example solver stack for redmine_gtt_scheduler: vroom-express in front of
+# VROOM, with OSRM providing travel times. See README.md in this directory
+# for the one-time data preparation step.
+#
+# This is an example, not a production deployment. The API is published on
+# the Docker host's loopback address only, but it has no authentication and
+# stays reachable from any container sharing this network, so put it behind
+# your own access control before exposing it further.
+
+services:
+  osrm:
+    image: ghcr.io/project-osrm/osrm-backend:v26.7.3
+    command: osrm-routed --algorithm mld /data/${OSRM_BASENAME:-region}.osrm
+    volumes:
+      - ./data:/data:ro
+    expose:
+      - "5000"
+    restart: unless-stopped
+
+  vroom:
+    image: ghcr.io/vroom-project/vroom-docker:v1.15.0
+    environment:
+      VROOM_ROUTER: osrm
+    volumes:
+      # Must stay writable: the image entrypoint seeds config.yml here when
+      # it is missing and touches access.log on every start.
+      - ./conf:/conf
+    ports:
+      # Reachable from the Redmine host only. Use the compose network
+      # instead when Redmine runs in the same stack.
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - osrm
+    restart: unless-stopped
