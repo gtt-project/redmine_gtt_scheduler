@@ -46,13 +46,17 @@ A small interface isolates the backend:
 
 ```ruby
 class Scheduler::Adapter
-  def solve(problem) -> Solution   # problem/solution are plain Ruby objects
+  # Takes a Scheduler::Problem, returns a Scheduler::Solution.
+  # Both are plain Ruby objects, independent of any backend.
+  def solve(problem)
+    raise NotImplementedError
+  end
 end
 ```
 
 Backends:
 
-- `VroomExpressAdapter` (v1 default): builds the VROOM JSON request,
+- `VroomExpressAdapter` (default): builds the VROOM JSON request,
   POSTs to vroom-express, parses the solution.
 - Future candidates behind the same interface: pgvroom (if it matures to
   a released, packaged extension), a revived pg_scheduleserv.
