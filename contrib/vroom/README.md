@@ -4,8 +4,10 @@ This directory contains a minimal, working example of the solver service
 that `redmine_gtt_scheduler` talks to: [vroom-express][vroom-express] in
 front of VROOM, with [OSRM][osrm] providing real road travel times.
 
-It is an example to copy and adapt, not a production deployment. It has
-no authentication and binds to localhost only.
+It is an example to copy and adapt, not a production deployment. The API
+is published on the Docker host's loopback address only, but it has no
+authentication and is reachable from any container on the same network,
+so put it behind your own access control before exposing it further.
 
 ## 1. Prepare the routing data (one time)
 
@@ -13,24 +15,23 @@ Download an extract for your region from [Geofabrik][geofabrik] and build
 the OSRM graph. Japan is used here as an example; the extract is large
 (several GB) and the build takes a while and needs plenty of RAM.
 
+Run these from this directory; each one mounts `./data` into the
+container:
+
 ```bash
-mkdir -p data && cd data
-curl -O https://download.geofabrik.de/asia/japan-latest.osm.pbf
+mkdir -p data && curl -o data/japan-latest.osm.pbf https://download.geofabrik.de/asia/japan-latest.osm.pbf
 ```
 
 ```bash
-docker run -t -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend \
-  osrm-extract -p /opt/car.lua /data/japan-latest.osm.pbf
+docker run -t -v "${PWD}/data:/data" ghcr.io/project-osrm/osrm-backend:v26.7.3 osrm-extract -p /opt/car.lua /data/japan-latest.osm.pbf
 ```
 
 ```bash
-docker run -t -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend \
-  osrm-partition /data/japan-latest.osrm
+docker run -t -v "${PWD}/data:/data" ghcr.io/project-osrm/osrm-backend:v26.7.3 osrm-partition /data/japan-latest.osrm
 ```
 
 ```bash
-docker run -t -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend \
-  osrm-customize /data/japan-latest.osrm
+docker run -t -v "${PWD}/data:/data" ghcr.io/project-osrm/osrm-backend:v26.7.3 osrm-customize /data/japan-latest.osrm
 ```
 
 For a first test, use a small extract instead (for example
@@ -39,7 +40,8 @@ which builds in a couple of minutes.
 
 ## 2. Start the stack
 
-Set `OSRM_BASENAME` to the extract name without the `.osrm` suffix:
+From this directory, set `OSRM_BASENAME` to the extract name without the
+`.osrm` suffix:
 
 ```bash
 OSRM_BASENAME=japan-latest docker compose up -d

@@ -2,13 +2,14 @@
 # VROOM, with OSRM providing travel times. See README.md in this directory
 # for the one-time data preparation step.
 #
-# This is an example, not a production deployment. It binds only to
-# localhost and has no authentication, so keep it on a private network and
-# put it behind your own access control if it needs to be reachable.
+# This is an example, not a production deployment. The API is published on
+# the Docker host's loopback address only, but it has no authentication and
+# stays reachable from any container sharing this network, so put it behind
+# your own access control before exposing it further.
 
 services:
   osrm:
-    image: ghcr.io/project-osrm/osrm-backend
+    image: ghcr.io/project-osrm/osrm-backend:v26.7.3
     command: osrm-routed --algorithm mld /data/${OSRM_BASENAME:-region}.osrm
     volumes:
       - ./data:/data:ro
@@ -21,6 +22,8 @@ services:
     environment:
       VROOM_ROUTER: osrm
     volumes:
+      # Must stay writable: the image entrypoint seeds config.yml here when
+      # it is missing and touches access.log on every start.
       - ./conf:/conf
     ports:
       # Reachable from the Redmine host only. Use the compose network
