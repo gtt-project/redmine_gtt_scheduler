@@ -1,3 +1,5 @@
+<%= stylesheet_link_tag 'scheduler', plugin: 'redmine_gtt_scheduler' %>
+
 <div class="contextual">
   <% if User.current.allowed_to?(:manage_scheduler, @project) && @run.proposed? %>
     <%= link_to l(:button_scheduler_apply), apply_project_scheduler_run_path(@project, @run),
@@ -25,8 +27,25 @@
   <p class="info"><%= l(:text_scheduler_run_in_progress) %></p>
 <% end %>
 
-<% @assignments.group_by(&:scheduler_resource).each do |resource, assignments| %>
-  <h3><%= resource.name %></h3>
+<% if @route_geojson && @project.module_enabled?(:gtt) %>
+  <fieldset id="location" class="collapsible">
+    <legend onclick="toggleFieldset(this);" class="icon icon-expended"><%= l(:field_location) %></legend>
+    <%= map_tag map: @project.map, geom: @route_geojson,
+                popup: {href: '/issues/[id]'}, rotation: @project.map_rotation %>
+    <p class="info"><%= l(:text_scheduler_map_straight_legs) %></p>
+  </fieldset>
+<% end %>
+
+<% @assignments_by_resource.each_with_index do |(resource, assignments), index| %>
+  <% color = RedmineGttScheduler::Scheduler::RouteGeoJson.color_for(index) %>
+  <h3>
+    <span class="scheduler-resource-swatch" style="background: <%= color %>"></span>
+    <%= resource&.name %>
+    <% if resource&.user %><span class="info">(<%= resource.user %>)</span><% end %>
+  </h3>
+
+  <%= render partial: 'timeline', locals: {assignments: assignments, color: color} %>
+
   <table class="list">
     <thead>
       <tr>
@@ -53,9 +72,15 @@
 
 <% if @unassigned_issues.any? %>
   <h3><%= l(:label_scheduler_unassigned) %></h3>
+  <p class="info"><%= l(:text_scheduler_unassigned_reasons_are_local) %></p>
   <ul>
     <% @unassigned_issues.each do |issue| %>
-      <li><%= link_to_issue(issue) %></li>
+      <li>
+        <%= link_to_issue(issue) %>
+        <span class="scheduler-diagnostic">
+          &mdash; <%= l(:"text_scheduler_unassigned_#{@unassigned_reasons[issue.id] || :unknown}") %>
+        </span>
+      </li>
     <% end %>
   </ul>
 <% end %>
@@ -74,6 +99,13 @@
       </li>
     <% end %>
   </ul>
+<% end %>
+
+<% if @run.resource_selection? %>
+  <p class="info">
+    <%= l(:text_scheduler_run_planned_with,
+          resources: @run.selected_resources.sorted.map(&:name).join(', ')) %>
+  </p>
 <% end %>
 
 <% html_title "#{l(:label_scheduler_run)} ##{@run.id}" %>

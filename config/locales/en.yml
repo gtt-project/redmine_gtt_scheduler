@@ -33,6 +33,15 @@ en:
   notice_scheduler_run_started: The optimization run was started.
   notice_scheduler_run_applied: The schedule was applied to the issues.
   notice_scheduler_run_discarded: The run was discarded.
+  text_scheduler_resource_selection_hint: Unchecking all resources plans with every active resource.
+  text_scheduler_no_resources: This project has no active resources yet, so a run cannot be planned.
+  text_scheduler_map_straight_legs: Lines join each resource's stops in visit order. They are straight legs, not the road path.
+  text_scheduler_unassigned_reasons_are_local: The solver does not report why a task was left out, so these explanations are derived from the run's own data.
+  text_scheduler_unassigned_outside_working_hours: its time window falls outside every resource's working hours
+  text_scheduler_unassigned_service_longer_than_shift: it needs more time than any resource's working hours allow
+  text_scheduler_unassigned_no_room_in_plan: it did not fit alongside the other tasks
+  text_scheduler_unassigned_unknown: no explanation could be derived
+  text_scheduler_run_planned_with: "Planned with: %{resources}"
   text_scheduler_run_scope_hint: All open issues of this project with a location are planned, using all active resources.
   text_scheduler_run_in_progress: The solver is running. Reload this page in a moment.
   text_scheduler_apply_confirm: This updates dates, times, and assignees of the scheduled issues. Continue?

@@ -56,7 +56,7 @@ module RedmineGttScheduler
       end
 
       def build_vehicles
-        @run.project.scheduler_resources.active.map do |resource|
+        @run.resources_for_solving.map do |resource|
           Problem::Vehicle.new(
             id: resource.id,
             start: resource.start_location,
@@ -69,16 +69,8 @@ module RedmineGttScheduler
         end
       end
 
-      # [lon, lat] for points; other geometries use their centroid when
-      # available, otherwise the issue is excluded.
       def point_of(geom)
-        return nil if geom.nil?
-        return [geom.x, geom.y] if geom.geometry_type == RGeo::Feature::Point
-
-        centroid = geom.respond_to?(:centroid) ? geom.centroid : nil
-        centroid && [centroid.x, centroid.y]
-      rescue RGeo::Error::RGeoError, RGeo::Error::UnsupportedOperation
-        nil
+        Geometry.point_of(geom)
       end
 
       # Window from redmine_issue_datetime timestamps when present, from

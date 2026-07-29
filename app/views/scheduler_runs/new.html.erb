@@ -4,6 +4,25 @@
   <%= error_messages_for @run %>
   <div class="box tabular">
     <p><%= f.date_field :scheduled_on, required: true, label: :field_scheduled_on %></p>
+
+    <% if @resources.any? %>
+      <p>
+        <label><%= l(:label_scheduler_resources) %></label>
+        <%= hidden_field_tag 'scheduler_run_resource_ids[]', '' %>
+        <% @resources.each do |resource| %>
+          <label class="block">
+            <%= check_box_tag 'scheduler_run_resource_ids[]', resource.id,
+                              @selected_resource_ids.include?(resource.id) %>
+            <%= resource.name %>
+            <span class="info">(<%= resource.work_starts %>&ndash;<%= resource.work_ends %>)</span>
+          </label>
+        <% end %>
+        <em class="info"><%= l(:text_scheduler_resource_selection_hint) %></em>
+      </p>
+    <% else %>
+      <p class="warning"><%= l(:text_scheduler_no_resources) %></p>
+    <% end %>
+
     <p class="info"><%= l(:text_scheduler_run_scope_hint) %></p>
   </div>
   <%= submit_tag l(:button_scheduler_solve) %>

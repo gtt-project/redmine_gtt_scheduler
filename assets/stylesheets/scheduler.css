@@ -1,0 +1,56 @@
+/* Per-resource timeline. Positions come from the helper as percentages, so this
+   only needs to lay out the track and style the bars. */
+.scheduler-timeline {
+  margin: 0.3em 0 1.2em;
+}
+
+.scheduler-timeline-axis {
+  position: relative;
+  height: 1.3em;
+  font-size: 0.8em;
+  color: #666;
+}
+
+.scheduler-timeline-tick {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.scheduler-timeline-track {
+  position: relative;
+  height: 1.7em;
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+}
+
+.scheduler-timeline-bar {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 2px;
+}
+
+.scheduler-timeline-bar-label {
+  color: #fff;
+  font-size: 0.75em;
+  line-height: 1.5em;
+  padding: 0 0.3em;
+  white-space: nowrap;
+}
+
+.scheduler-resource-swatch {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 2px;
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
+
+.scheduler-diagnostic {
+  color: #666;
+}

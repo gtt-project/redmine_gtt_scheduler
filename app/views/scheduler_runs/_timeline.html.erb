@@ -1,0 +1,22 @@
+<% timeline = scheduler_timeline(assignments) %>
+<% if timeline %>
+  <div class="scheduler-timeline" data-hours="<%= timeline[:hours] %>">
+    <div class="scheduler-timeline-axis">
+      <% timeline[:ticks].each do |tick| %>
+        <span class="scheduler-timeline-tick" style="left: <%= tick[:left] %>%">
+          <%= tick[:label] %>
+        </span>
+      <% end %>
+    </div>
+    <div class="scheduler-timeline-track">
+      <% timeline[:bars].each do |bar| %>
+        <% a = bar[:assignment] %>
+        <span class="scheduler-timeline-bar"
+              style="left: <%= bar[:left] %>%; width: <%= bar[:width] %>%; background: <%= color %>;"
+              title="<%= "##{a.issue_id} #{a.issue&.subject} (#{scheduler_time(a.starts_at)}-#{scheduler_time(a.ends_at)})" %>">
+          <span class="scheduler-timeline-bar-label"><%= a.sequence %></span>
+        </span>
+      <% end %>
+    </div>
+  </div>
+<% end %>
