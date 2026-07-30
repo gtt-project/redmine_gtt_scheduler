@@ -36,6 +36,9 @@ en:
   text_scheduler_resource_selection_hint: Unchecking all resources plans with every active resource.
   text_scheduler_no_resources: This project has no active resources yet, so a run cannot be planned.
   text_scheduler_map_straight_legs: Lines join each resource's stops in visit order. They are straight legs, not the road path.
+  text_scheduler_map_road_paths: Lines follow the road each resource travels, in visit order.
+  label_scheduler_request_geometry: Ask the solver for road geometry
+  text_scheduler_request_geometry_hint: Draws real road paths on the run map instead of straight lines between stops. Costs a little solver time and a larger response.
   text_scheduler_unassigned_reasons_are_local: The solver does not report why a task was left out, so these explanations are derived from the run's own data.
   text_scheduler_unassigned_outside_working_hours: its time window falls outside every resource's working hours
   text_scheduler_unassigned_service_longer_than_shift: it needs more time than any resource's working hours allow

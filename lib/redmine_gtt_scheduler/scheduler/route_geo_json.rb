@@ -3,10 +3,10 @@ module RedmineGttScheduler
     # Builds the GeoJSON a run's map renders: one point per stop plus one line
     # per resource joining its stops in visit order.
     #
-    # The lines are straight legs between consecutive stops, not the road path.
-    # They convey the order and rough shape of a route, which is what a
-    # dispatcher reads the map for. Real road geometry needs VROOM's `g` flag
-    # and polyline decoding, and is deliberately left for a later change.
+    # A route follows the real road path when the solver returned geometry for
+    # it (VROOM's `g` option), and falls back to straight legs between
+    # consecutive stops when it did not, so an older run or a solver asked
+    # without geometry still renders.
     class RouteGeoJson
       # Used for the per-resource swatch and timeline bars. It is also emitted as
       # a feature property, but redmine_gtt's map renderer currently styles every
@@ -18,12 +18,16 @@ module RedmineGttScheduler
         COLORS[index % COLORS.size]
       end
 
-      def self.call(assignments)
-        new(assignments).call
+      # geometries: resource id => encoded polyline from the solver. When one is
+      # present and decodes plausibly, the route follows the actual roads;
+      # otherwise it falls back to straight legs between consecutive stops.
+      def self.call(assignments, geometries: {})
+        new(assignments, geometries: geometries).call
       end
 
-      def initialize(assignments)
+      def initialize(assignments, geometries: {})
         @assignments = assignments
+        @geometries = geometries || {}
       end
 
       def call
@@ -41,7 +45,12 @@ module RedmineGttScheduler
             points << point
             features << stop_feature(assignment, point, color)
           end
-          features << leg_feature(stops.first&.scheduler_resource, points, color) if points.size > 1
+          road = road_coordinates(resource_id, points)
+          if road
+            features << line_feature(stops.first&.scheduler_resource, road, color, road: true)
+          elsif points.size > 1
+            features << line_feature(stops.first&.scheduler_resource, points, color, road: false)
+          end
         end
         {'type' => 'FeatureCollection', 'features' => features}
       end
@@ -62,7 +71,21 @@ module RedmineGttScheduler
         }
       end
 
-      def leg_feature(resource, points, color)
+      # Decoded road path for this resource, or nil when there is none to use.
+      # The plausibility check is the guard against an upstream precision change:
+      # decoding at the wrong precision divides every coordinate by ten, which
+      # would quietly draw the route in the wrong hemisphere rather than fail.
+      def road_coordinates(resource_id, stops)
+        encoded = @geometries[resource_id] || @geometries[resource_id.to_s]
+        return nil if encoded.blank?
+
+        decoded = Polyline.decode(encoded)
+        return nil unless decoded.size > 1 && Polyline.plausible?(decoded, near: stops)
+
+        decoded
+      end
+
+      def line_feature(resource, points, color, road:)
         {
           'type' => 'Feature',
           'geometry' => {'type' => 'LineString', 'coordinates' => points},
@@ -70,7 +93,10 @@ module RedmineGttScheduler
             'resource' => resource&.name,
             'resource_id' => resource&.id,
             'color' => color,
-            'straight_legs' => true
+            # False means the line is straight legs between stops, which the UI
+            # says out loud rather than passing off as a road path.
+            'road_path' => road,
+            'straight_legs' => !road
           }
         }
       end

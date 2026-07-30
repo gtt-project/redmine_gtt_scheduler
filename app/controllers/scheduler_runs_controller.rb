@@ -25,7 +25,14 @@ class SchedulerRunsController < ApplicationController
     # relying on nil coercing to 0 and quietly sorting first.
     @assignments_by_resource = @assignments.group_by(&:scheduler_resource)
                                            .sort_by { |resource, _| [resource ? 0 : 1, resource&.id || 0] }
-    @route_geojson = RedmineGttScheduler::Scheduler::RouteGeoJson.call(@assignments) if @assignments.any?
+    if @assignments.any?
+      @route_geojson = RedmineGttScheduler::Scheduler::RouteGeoJson.call(
+        @assignments, geometries: @run.route_geometries
+      )
+      # Whether any route is a real road path decides which hint the map shows,
+      # so an older run is not described as following roads it never had.
+      @map_has_road_paths = @route_geojson['features'].any? { |f| f.dig('properties', 'road_path') }
+    end
     @unassigned_issues = Issue.where(id: @run.unassigned_issue_ids).visible
     @unassigned_reasons = @unassigned_issues.any? ? unassigned_reasons : {}
     @excluded_issues = Issue.where(id: @run.excluded.keys).visible.index_by(&:id)

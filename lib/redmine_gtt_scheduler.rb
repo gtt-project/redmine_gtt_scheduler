@@ -1,5 +1,6 @@
 require_relative 'redmine_gtt_scheduler/project_extension'
 require_relative 'redmine_gtt_scheduler/scheduler/geometry'
+require_relative 'redmine_gtt_scheduler/scheduler/polyline'
 require_relative 'redmine_gtt_scheduler/scheduler/route_geo_json'
 require_relative 'redmine_gtt_scheduler/scheduler/problem'
 require_relative 'redmine_gtt_scheduler/scheduler/solution'
@@ -28,6 +29,14 @@ module RedmineGttScheduler
   def self.default_service_seconds
     minutes = settings['default_service_minutes'].to_i
     (minutes.positive? ? minutes : 30) * 60
+  end
+
+  # Whether to ask the solver for each route's road geometry. On by default:
+  # the map is the primary way a run is read, and straight lines between stops
+  # misrepresent where a crew actually drives. Turn it off if the response size
+  # or the extra solver time matters.
+  def self.request_geometry?
+    settings['request_geometry'].to_s != '0'
   end
 
   def self.solver_timeout

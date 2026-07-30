@@ -44,16 +44,33 @@ class SchedulerRun < ApplicationRecord
     scheduler_run_resources.exists?
   end
 
+  # Valid JSON is not necessarily a Hash: an array or a bare string parses fine
+  # and would then raise on fetch, taking the run page down over stored data
+  # rather than over anything the reader did.
+  def parsed_response
+    parsed = JSON.parse(response_payload.presence || '{}')
+    parsed.is_a?(Hash) ? parsed : {}
+  rescue JSON::ParserError
+    {}
+  end
+
   def excluded
     JSON.parse(excluded_issues.presence || '{}')
   rescue JSON::ParserError
     {}
   end
 
+  # Encoded route geometry per resource id, read back out of the stored solver
+  # response so no extra column is needed. Empty for runs solved without
+  # geometry, which the map handles by drawing straight legs.
+  def route_geometries
+    response = parsed_response
+    response.fetch('routes', []).each_with_object({}) do |route, out|
+      out[route['vehicle']] = route['geometry'] if route['geometry'].present?
+    end
+  end
+
   def unassigned_issue_ids
-    response = JSON.parse(response_payload.presence || '{}')
-    response.fetch('unassigned', []).map { |u| u['id'] }
-  rescue JSON::ParserError
-    []
+    parsed_response.fetch('unassigned', []).map { |u| u['id'] }
   end
 end
