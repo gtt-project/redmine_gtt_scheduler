@@ -65,6 +65,9 @@ module RedmineGttScheduler
             'id' => assignment.issue_id,
             'subject' => assignment.issue&.subject,
             'sequence' => assignment.sequence,
+            # Both the id and the name: the map keys on the id, because resource
+            # names are not unique, and shows the name.
+            'resource_id' => assignment.scheduler_resource_id,
             'resource' => assignment.scheduler_resource&.name,
             'color' => color
           }

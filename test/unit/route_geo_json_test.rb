@@ -175,4 +175,22 @@ class RouteGeoJsonTest < ActiveSupport::TestCase
     assert_empty @run.reload.route_geometries
     assert_empty @run.unassigned_issue_ids
   end
+
+  # The map keys its per-resource legend and toggle on the id, because resource
+  # names are not unique, so every feature has to carry it.
+  test 'stops and lines both carry the resource id' do
+    a = build_resource(@project, name: 'Same name')
+    b = build_resource(@project, name: 'Same name')
+    assign(place(Issue.find(1), 135.3550, 34.7450), a, 1, 9)
+    assign(place(Issue.find(2), 135.3560, 34.7455), a, 2, 10)
+    assign(place(Issue.find(3), 135.3570, 34.7460), b, 1, 9)
+
+    collection = Builder.call(@run.scheduler_assignments.includes(:issue, :scheduler_resource))
+
+    assert(collection['features'].all? { |f| f['properties']['resource_id'].present? },
+           'every feature needs a resource_id')
+    # Two resources sharing a name stay distinguishable by id.
+    assert_equal [a.id, b.id].sort,
+                 collection['features'].map { |f| f['properties']['resource_id'] }.uniq.sort
+  end
 end

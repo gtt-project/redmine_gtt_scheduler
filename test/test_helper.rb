@@ -3,8 +3,12 @@ require File.expand_path('../../../test/test_helper', __dir__)
 module SchedulerTestHelper
   # Enables the scheduler module and the time fields of redmine_issue_datetime
   # for the given project and trackers.
+  # Both modules: the scheduler depends on redmine_gtt, and the run map (and so
+  # its legend) only renders where the gtt module is on, so a fixture with only
+  # gtt_scheduler enabled is not a realistic setup.
   def enable_scheduler(project, tracker_ids: nil)
-    project.enabled_module_names = project.enabled_module_names + ['gtt_scheduler']
+    # Union, so calling this more than once for a project cannot duplicate.
+    project.enabled_module_names = project.enabled_module_names | %w[gtt_scheduler gtt]
     Setting.plugin_redmine_issue_datetime = {
       'tracker_ids' => Array(tracker_ids || project.trackers.map(&:id)).map(&:to_s),
       'time_step' => '15',
