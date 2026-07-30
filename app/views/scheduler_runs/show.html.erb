@@ -1,4 +1,5 @@
 <%= stylesheet_link_tag 'scheduler', plugin: 'redmine_gtt_scheduler' %>
+<%= javascript_include_tag 'scheduler_map', plugin: 'redmine_gtt_scheduler' %>
 
 <div class="contextual">
   <% if User.current.allowed_to?(:manage_scheduler, @project) && @run.proposed? %>
@@ -32,6 +33,9 @@
     <legend onclick="toggleFieldset(this);" class="icon icon-expended"><%= l(:field_location) %></legend>
     <%= map_tag map: @project.map, geom: @route_geojson,
                 popup: {href: '/issues/[id]'}, rotation: @project.map_rotation %>
+    <%# Filled in by scheduler_map.js once redmine_gtt's map is ready, and left
+        hidden if that hook is unavailable, so no dead controls are shown. %>
+    <div id="scheduler-map-legend" class="scheduler-map-legend" hidden></div>
     <p class="info">
       <%= @map_has_road_paths ? l(:text_scheduler_map_road_paths) : l(:text_scheduler_map_straight_legs) %>
     </p>

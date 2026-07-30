@@ -61,6 +61,10 @@ class SchedulerRunsControllerTest < Redmine::ControllerTest
 
     assert_response :success
     assert_select 'h3', text: resource.name
+    # The legend is filled in by scheduler_map.js on redmine_gtt's map-ready
+    # event; it ships hidden so no dead controls appear if that hook is gone.
+    assert_select 'div#scheduler-map-legend[hidden]'
+    assert_select 'script[src*=?]', 'scheduler_map'
     # rails-ujs turns these into POSTs; core uses the same pattern.
     assert_select "a[data-method=post][href=?]",
                   "/projects/#{@project.identifier}/scheduler_runs/#{run.id}/apply"

@@ -54,3 +54,28 @@
 .scheduler-diagnostic {
   color: #666;
 }
+
+/* Per-resource route legend under the run map. Built by scheduler_map.js. */
+.scheduler-map-legend {
+  margin: 0.5em 0 0.2em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 1.2em;
+}
+
+.scheduler-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  font-weight: normal;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.scheduler-map-legend-swatch {
+  display: inline-block;
+  width: 1.4em;
+  height: 0.28em;
+  border-radius: 2px;
+  background: #999;
+}
