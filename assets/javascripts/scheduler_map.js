@@ -40,8 +40,10 @@
     if (typeof base !== 'function') return false;
 
     layer.setStyle(function (feature, resolution) {
-      var resource = feature.get('resource');
-      if (resource && HIDDEN[resource]) return [];
+      // Keyed on the resource id, not its name: names are not unique, so two
+      // resources sharing one would otherwise toggle together.
+      var id = feature.get('resource_id');
+      if (id != null && HIDDEN[id]) return [];
 
       var styles = base(feature, resolution);
       var color = feature.get('color');
@@ -50,18 +52,23 @@
     return true;
   }
 
-  // One entry per resource present on the map, taking the colour from the
-  // features themselves so the legend cannot disagree with what is drawn.
+  // One entry per resource on the map, de-duplicated by id and taking the
+  // colour from the features themselves, so the legend cannot disagree with
+  // what is drawn.
   function resourcesOf(layer) {
     var source = layer.getSource && layer.getSource();
     var features = source && source.getFeatures ? source.getFeatures() : [];
     var seen = Object.create(null);
     var out = [];
     features.forEach(function (feature) {
-      var name = feature.get('resource');
-      if (!name || seen[name]) return;
-      seen[name] = true;
-      out.push({name: name, color: feature.get('color')});
+      var id = feature.get('resource_id');
+      if (id == null || seen[id]) return;
+      seen[id] = true;
+      out.push({
+        id: id,
+        name: feature.get('resource') || String(id),
+        color: feature.get('color')
+      });
     });
     return out.sort(function (a, b) { return a.name.localeCompare(b.name); });
   }
@@ -74,10 +81,10 @@
 
       var box = document.createElement('input');
       box.type = 'checkbox';
-      box.checked = !HIDDEN[resource.name];
+      box.checked = !HIDDEN[resource.id];
       box.addEventListener('change', function () {
-        if (box.checked) delete HIDDEN[resource.name];
-        else HIDDEN[resource.name] = true;
+        if (box.checked) delete HIDDEN[resource.id];
+        else HIDDEN[resource.id] = true;
         layer.changed();
       });
 
