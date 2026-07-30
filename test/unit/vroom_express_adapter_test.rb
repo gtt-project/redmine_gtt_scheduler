@@ -76,4 +76,44 @@ class VroomExpressAdapterTest < ActiveSupport::TestCase
       Adapter.new(transport: transport).solve(simple_problem)
     end
   end
+
+  test 'geometry is requested when the setting is on' do
+    transport, requests = stub_transport('code' => 0, 'routes' => [], 'unassigned' => [])
+    Adapter.new(transport: transport).solve(simple_problem)
+
+    assert_equal({'g' => true}, requests.first['options'])
+  end
+
+  test 'geometry is not requested when the setting is off' do
+    Setting.plugin_redmine_gtt_scheduler = {'request_geometry' => '0'}
+    transport, requests = stub_transport('code' => 0, 'routes' => [], 'unassigned' => [])
+    Adapter.new(transport: transport).solve(simple_problem)
+
+    assert_nil requests.first['options']
+  end
+
+  test 'route geometry is carried into the solution, keyed by vehicle' do
+    response = {
+      'code' => 0,
+      'routes' => [
+        {'vehicle' => 21, 'geometry' => 'gcasE}ocyXR?AQ', 'steps' => [
+          {'type' => 'job', 'id' => 11, 'duration' => 0, 'arrival' => 100,
+           'waiting_time' => 0, 'service' => 60}
+        ]}
+      ],
+      'unassigned' => []
+    }
+    transport, = stub_transport(response)
+
+    solution = Adapter.new(transport: transport).solve(simple_problem)
+
+    assert_equal({21 => 'gcasE}ocyXR?AQ'}, solution.route_geometries)
+  end
+
+  test 'a route without geometry contributes nothing to the map' do
+    response = {'code' => 0, 'routes' => [{'vehicle' => 21, 'steps' => []}], 'unassigned' => []}
+    transport, = stub_transport(response)
+
+    assert_empty Adapter.new(transport: transport).solve(simple_problem).route_geometries
+  end
 end

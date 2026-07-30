@@ -40,7 +40,9 @@ available in the git history.
 2. Issue time windows come from redmine_issue_datetime, service time from
    `estimated_hours`, and priority from the issue priority.
 3. The solver proposes a schedule. Nothing is written to the issues yet;
-   issues that could not be planned are listed with a reason.
+   issues that could not be planned are listed with a reason. The run page
+   shows each resource's route on the map, following the actual roads, plus
+   an hour-level timeline.
 4. On apply, the start and due dates, the times, and the assignee are
    written to each issue and journalized.
 

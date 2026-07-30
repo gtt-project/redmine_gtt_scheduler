@@ -50,6 +50,18 @@ class SchedulerRun < ApplicationRecord
     {}
   end
 
+  # Encoded route geometry per resource id, read back out of the stored solver
+  # response so no extra column is needed. Empty for runs solved without
+  # geometry, which the map handles by drawing straight legs.
+  def route_geometries
+    response = JSON.parse(response_payload.presence || '{}')
+    response.fetch('routes', []).each_with_object({}) do |route, out|
+      out[route['vehicle']] = route['geometry'] if route['geometry'].present?
+    end
+  rescue JSON::ParserError
+    {}
+  end
+
   def unassigned_issue_ids
     response = JSON.parse(response_payload.presence || '{}')
     response.fetch('unassigned', []).map { |u| u['id'] }

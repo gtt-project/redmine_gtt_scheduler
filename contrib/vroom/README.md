@@ -103,6 +103,10 @@ docker network connect --alias vroom <redmine-network> <vroom-container>
   enough.
 - Issues outside the extract's area cannot be routed. Cover every location
   you plan with, or widen the extract.
+- The plugin asks for route geometry with VROOM's `g` option so the run map
+  can draw real roads. `conf/config.yml` already permits that per request
+  via `override`; it can be switched off in the plugin's settings if the
+  extra response size matters.
 
 [vroom-express]: https://github.com/VROOM-Project/vroom-express
 [osrm]: https://github.com/Project-OSRM/osrm-backend

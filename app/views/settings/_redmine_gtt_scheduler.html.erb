@@ -12,3 +12,9 @@
   <label><%= l(:label_scheduler_timeout) %></label>
   <%= text_field_tag 'settings[solver_timeout]', RedmineGttScheduler.settings['solver_timeout'], size: 6 %>
 </p>
+<p>
+  <label><%= l(:label_scheduler_request_geometry) %></label>
+  <%= hidden_field_tag 'settings[request_geometry]', '0' %>
+  <%= check_box_tag 'settings[request_geometry]', '1', RedmineGttScheduler.request_geometry? %>
+  <em class="info"><%= l(:text_scheduler_request_geometry_hint) %></em>
+</p>

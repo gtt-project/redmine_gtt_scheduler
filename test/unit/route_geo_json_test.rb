@@ -99,4 +99,73 @@ class RouteGeoJsonTest < ActiveSupport::TestCase
     assert_equal palette.first, Builder.color_for(palette.size)
     assert_equal palette.size, (0...palette.size).map { |i| Builder.color_for(i) }.uniq.size
   end
+
+  # Geometry from the solver replaces the straight legs; a real captured polyline
+  # is used so this also proves the decode path end to end.
+  REAL_ROUTE = 'gcasE}ocyXR?AQ?O?N@PfBCZA@YBgG?e@_@B}@Di@J[FMBM?KG'.freeze
+
+  test 'a route follows the road path when the solver returned geometry' do
+    resource = build_resource(@project)
+    assign(place(Issue.find(1), 135.3550, 34.7450), resource, 1, 9)
+    assign(place(Issue.find(2), 135.3560, 34.7455), resource, 2, 10)
+
+    collection = Builder.call(@run.scheduler_assignments.includes(:issue, :scheduler_resource),
+                              geometries: {resource.id => REAL_ROUTE})
+    line = features_of('LineString', collection).first
+
+    assert_equal true, line['properties']['road_path']
+    assert_equal false, line['properties']['straight_legs']
+    # Far more points than the two stops, because it follows the roads.
+    assert_operator line['geometry']['coordinates'].size, :>, 2
+  end
+
+  test 'without geometry the route falls back to straight legs' do
+    resource = build_resource(@project)
+    assign(place(Issue.find(1), 135.3550, 34.7450), resource, 1, 9)
+    assign(place(Issue.find(2), 135.3560, 34.7455), resource, 2, 10)
+
+    collection = Builder.call(@run.scheduler_assignments.includes(:issue, :scheduler_resource))
+    line = features_of('LineString', collection).first
+
+    assert_equal false, line['properties']['road_path']
+    assert_equal 2, line['geometry']['coordinates'].size
+  end
+
+  # The guard that matters: a geometry decoding far from the stops must not be
+  # drawn. Without it a precision change upstream would silently relocate routes.
+  test 'geometry that lands nowhere near the stops is ignored' do
+    resource = build_resource(@project)
+    # Stops in Tokyo, geometry from Nishinomiya: implausible together.
+    assign(place(Issue.find(1), 139.7000, 35.6800), resource, 1, 9)
+    assign(place(Issue.find(2), 139.7100, 35.6900), resource, 2, 10)
+
+    collection = Builder.call(@run.scheduler_assignments.includes(:issue, :scheduler_resource),
+                              geometries: {resource.id => REAL_ROUTE})
+    line = features_of('LineString', collection).first
+
+    assert_equal false, line['properties']['road_path'], 'implausible geometry must be rejected'
+    assert_equal 2, line['geometry']['coordinates'].size
+  end
+
+  test 'a garbled geometry falls back rather than raising' do
+    resource = build_resource(@project)
+    assign(place(Issue.find(1), 135.3550, 34.7450), resource, 1, 9)
+    assign(place(Issue.find(2), 135.3560, 34.7455), resource, 2, 10)
+
+    collection = Builder.call(@run.scheduler_assignments.includes(:issue, :scheduler_resource),
+                              geometries: {resource.id => '!!!not a polyline!!!'})
+
+    assert_equal false, features_of('LineString', collection).first['properties']['road_path']
+  end
+
+  test 'a geometry keyed by string id is still matched' do
+    resource = build_resource(@project)
+    assign(place(Issue.find(1), 135.3550, 34.7450), resource, 1, 9)
+    assign(place(Issue.find(2), 135.3560, 34.7455), resource, 2, 10)
+
+    collection = Builder.call(@run.scheduler_assignments.includes(:issue, :scheduler_resource),
+                              geometries: {resource.id.to_s => REAL_ROUTE})
+
+    assert_equal true, features_of('LineString', collection).first['properties']['road_path']
+  end
 end

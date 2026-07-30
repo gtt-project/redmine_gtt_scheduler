@@ -32,7 +32,9 @@
     <legend onclick="toggleFieldset(this);" class="icon icon-expended"><%= l(:field_location) %></legend>
     <%= map_tag map: @project.map, geom: @route_geojson,
                 popup: {href: '/issues/[id]'}, rotation: @project.map_rotation %>
-    <p class="info"><%= l(:text_scheduler_map_straight_legs) %></p>
+    <p class="info">
+      <%= @map_has_road_paths ? l(:text_scheduler_map_road_paths) : l(:text_scheduler_map_straight_legs) %>
+    </p>
   </fieldset>
 <% end %>
 

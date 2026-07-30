@@ -8,13 +8,17 @@ module RedmineGttScheduler
         keyword_init: true
       )
 
-      attr_reader :assignments, :unassigned_ids, :request, :raw
+      attr_reader :assignments, :unassigned_ids, :request, :raw, :route_geometries
 
-      def initialize(assignments: [], unassigned_ids: [], request: nil, raw: nil)
+      # route_geometries maps a vehicle (resource) id to the encoded polyline
+      # VROOM returned for its route, when geometry was requested.
+      def initialize(assignments: [], unassigned_ids: [], request: nil, raw: nil,
+                     route_geometries: {})
         @assignments = assignments
         @unassigned_ids = unassigned_ids
         @request = request
         @raw = raw
+        @route_geometries = route_geometries
       end
     end
   end

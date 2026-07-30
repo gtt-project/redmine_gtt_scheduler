@@ -17,7 +17,8 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
              # most setups, so an unconfigured scheduler would post to Redmine.
              'vroom_url' => 'http://vroom:3000',
              'default_service_minutes' => '30',
-             'solver_timeout' => '60'
+             'solver_timeout' => '60',
+             'request_geometry' => '1'
            }
 
   project_module :gtt_scheduler do

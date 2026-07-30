@@ -23,7 +23,7 @@ module RedmineGttScheduler
       end
 
       def build_request(problem)
-        {
+        request = {
           'jobs' => problem.jobs.map do |job|
             {
               'id' => job.id,
@@ -42,6 +42,10 @@ module RedmineGttScheduler
             }
           end
         }
+        # `g` asks VROOM for the road geometry of each route. It costs response
+        # size and a little solver time, hence the setting.
+        request['options'] = {'g' => true} if RedmineGttScheduler.request_geometry?
+        request
       end
 
       private
@@ -64,6 +68,15 @@ module RedmineGttScheduler
         JSON.parse(body.to_s)
       rescue JSON::ParserError => e
         raise SolverError, "invalid solver response: #{e.message}"
+      end
+
+      # Only routes that actually carry geometry; absent when `g` was not asked
+      # for, which the map handles by falling back to straight legs.
+      def geometries_of(response)
+        response.fetch('routes', []).each_with_object({}) do |route, out|
+          geometry = route['geometry']
+          out[route['vehicle']] = geometry if geometry.present?
+        end
       end
 
       def build_solution(request, response)
@@ -93,7 +106,8 @@ module RedmineGttScheduler
           assignments: assignments,
           unassigned_ids: response.fetch('unassigned', []).map { |u| u['id'] },
           request: request,
-          raw: response
+          raw: response,
+          route_geometries: geometries_of(response)
         )
       end
     end

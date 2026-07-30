@@ -36,6 +36,9 @@ ja:
   text_scheduler_resource_selection_hint: リソースをすべて未選択にすると、有効なリソース全員で計画します。
   text_scheduler_no_resources: このプロジェクトには有効なリソースがないため、計画を実行できません。
   text_scheduler_map_straight_legs: 線は各リソースの訪問順に地点を結んだものです。実際の道路経路ではなく直線です。
+  text_scheduler_map_road_paths: 線は各リソースが訪問順に走行する道路を表します。
+  label_scheduler_request_geometry: ソルバーに道路形状を要求する
+  text_scheduler_request_geometry_hint: 地点間の直線ではなく実際の道路経路を地図に描画します。ソルバーの処理時間とレスポンスサイズが少し増えます。
   text_scheduler_unassigned_reasons_are_local: ソルバーは割り当てなかった理由を返さないため、以下は実行時のデータから推定した説明です。
   text_scheduler_unassigned_outside_working_hours: 時間枠がどのリソースの勤務時間にも重なりません
   text_scheduler_unassigned_service_longer_than_shift: 所要時間がどのリソースの勤務時間よりも長いです
