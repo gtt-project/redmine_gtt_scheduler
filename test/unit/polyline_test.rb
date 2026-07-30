@@ -67,4 +67,16 @@ class PolylineTest < ActiveSupport::TestCase
   test 'plausibility rejects a line nowhere near its stops' do
     assert_not Polyline.plausible?([[2.35, 48.85]], near: [[135.35, 34.74]])
   end
+
+  test 'whitespace-only input decodes to nothing' do
+    assert_empty Polyline.decode('   ')
+    assert_empty Polyline.decode("\n")
+  end
+
+  # Bytes below the encoded-polyline alphabet would otherwise shift into
+  # arbitrary coordinates rather than being rejected.
+  test 'characters outside the encoded alphabet are rejected' do
+    assert_empty Polyline.decode("\x01\x02\x03")
+    assert_empty Polyline.decode('abc' + 0.chr + 'def')
+  end
 end

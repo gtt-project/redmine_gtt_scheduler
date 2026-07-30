@@ -85,11 +85,14 @@ class VroomExpressAdapterTest < ActiveSupport::TestCase
   end
 
   test 'geometry is not requested when the setting is off' do
+    previous = Setting.plugin_redmine_gtt_scheduler
     Setting.plugin_redmine_gtt_scheduler = {'request_geometry' => '0'}
     transport, requests = stub_transport('code' => 0, 'routes' => [], 'unassigned' => [])
     Adapter.new(transport: transport).solve(simple_problem)
 
     assert_nil requests.first['options']
+  ensure
+    Setting.plugin_redmine_gtt_scheduler = previous
   end
 
   test 'route geometry is carried into the solution, keyed by vehicle' do

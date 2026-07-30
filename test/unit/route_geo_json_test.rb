@@ -168,4 +168,11 @@ class RouteGeoJsonTest < ActiveSupport::TestCase
 
     assert_equal true, features_of('LineString', collection).first['properties']['road_path']
   end
+
+  test 'a non-Hash stored response does not break the run page' do
+    @run.update_column(:response_payload, '["unexpected"]')
+
+    assert_empty @run.reload.route_geometries
+    assert_empty @run.unassigned_issue_ids
+  end
 end
