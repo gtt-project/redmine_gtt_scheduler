@@ -1,0 +1,6 @@
+# OSRM graph data: hundreds of MB, rebuilt locally from a Geofabrik extract.
+data/
+
+# Written by the vroom-express entrypoint at runtime, which is why /conf is
+# mounted writable.
+conf/access.log

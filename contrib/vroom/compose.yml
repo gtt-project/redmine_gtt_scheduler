@@ -9,7 +9,12 @@
 
 services:
   osrm:
-    image: ghcr.io/project-osrm/osrm-backend:v26.7.3
+    # v26.4.0 is the newest tag published as a multi-arch image, so this works
+    # on both amd64 and arm64 without the reader having to think about it.
+    # Newer OSRM releases publish architecture-suffixed tags only
+    # (v26.7.3-arm64-debian, v26.7.3-amd64-alpine, ...); set OSRM_TAG to one of
+    # those, matching your host, if you want a newer build.
+    image: ghcr.io/project-osrm/osrm-backend:${OSRM_TAG:-v26.4.0}
     command: osrm-routed --algorithm mld /data/${OSRM_BASENAME:-region}.osrm
     volumes:
       - ./data:/data:ro
