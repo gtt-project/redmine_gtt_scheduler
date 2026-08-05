@@ -24,7 +24,8 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
              # Empty = capacity limits off.
              'capacity_custom_field_id' => '',
              # Empty = shipments off.
-             'shipment_relation_type' => ''
+             'shipment_relation_type' => '',
+             'solver_backend' => 'vroom_express'
            }
 
   project_module :gtt_scheduler do

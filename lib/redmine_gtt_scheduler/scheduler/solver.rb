@@ -10,7 +10,7 @@ module RedmineGttScheduler
 
       def initialize(run, adapter: nil)
         @run = run
-        @adapter = adapter || VroomExpressAdapter.new
+        @adapter = adapter
       end
 
       def call
@@ -22,7 +22,7 @@ module RedmineGttScheduler
           return @run
         end
 
-        solution = @adapter.solve(problem)
+        solution = adapter.solve(problem)
         persist(problem, solution)
         @run
       rescue Adapter::SolverError => e
@@ -41,6 +41,19 @@ module RedmineGttScheduler
       end
 
       private
+
+      # Built lazily inside call, so an unknown configured backend fails
+      # the run with a clear message instead of raising during
+      # construction, outside the rescue.
+      def adapter
+        @adapter ||= begin
+          name = RedmineGttScheduler.solver_backend
+          klass = Scheduler.adapter_for(name)
+          raise Adapter::SolverError, "unknown solver backend #{name.inspect}" if klass.nil?
+
+          klass.new
+        end
+      end
 
       def persist(problem, solution)
         SchedulerRun.transaction do

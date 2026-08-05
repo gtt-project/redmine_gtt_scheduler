@@ -22,9 +22,9 @@ resource's capacity), per-resource working days, daily breaks,
 multi-day planning (a run can cover a range of days, with one route per
 resource per working day), and pickup/delivery pairs (two issues joined
 by a configurable relation are served in order by the same resource).
-Alternative solver backends
-([#34](https://github.com/gtt-project/redmine_gtt_scheduler/issues/34))
-are planned. See [docs/design.md](docs/design.md) for the design
+Solver backends are pluggable: other plugins can register an adapter
+and the settings offer it (vroom-express ships as the default; see the
+design document). See [docs/design.md](docs/design.md) for the design
 document.
 
 A first prototype was built here in 2022 during Google Summer of Code by
@@ -97,10 +97,12 @@ sure a worker is running or runs will stay in "solving".
 ## Architecture
 
 The solver is reached over HTTP behind a small adapter interface
-(`Scheduler::Adapter`), so other backends can be added later. The
-default `VroomExpressAdapter` talks to vroom-express, which wraps VROOM
-and OSRM for travel times. No PostgreSQL extension is required, which
-keeps the plugin installable on any Redmine, including ones on managed
+(`Scheduler::Adapter`) with a registry, so other backends can be added
+without patching the plugin: implement `solve(problem)`, register the
+class under a name, and the plugin settings offer it. The default
+`VroomExpressAdapter` talks to vroom-express, which wraps VROOM and
+OSRM for travel times. No PostgreSQL extension is required, which keeps
+the plugin installable on any Redmine, including ones on managed
 databases.
 
 ## License

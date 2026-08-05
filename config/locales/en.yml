@@ -25,6 +25,9 @@ en:
   label_scheduler_status_applied: Applied
   label_scheduler_status_failed: Failed
   label_scheduler_status_discarded: Discarded
+  label_scheduler_backend: Solver backend
+  label_scheduler_backend_missing: "%{name} (not installed)"
+  text_scheduler_backend_hint: Backends register themselves with the plugin; vroom-express ships with it. See the design document for adding one.
   label_scheduler_vroom_url: VROOM server URL
   label_scheduler_default_service: Default service time (minutes)
   label_scheduler_timeout: Solver timeout (seconds)
