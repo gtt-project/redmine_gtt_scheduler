@@ -143,6 +143,7 @@ the stored solver response when the map needs it.
 | `job.skills` | A list-format issue custom field picked in the plugin settings (stored by id, never matched by name); resources carry skill names from the same vocabulary. VROOM skill ids are assigned per request from the sorted union of names in play, so nothing persists ids and renaming values cannot corrupt data |
 | `job.delivery` | An integer issue custom field picked in the plugin settings (single load dimension). VROOM requires every job and vehicle to carry the dimension once any does (verified against a live solver), so when active, issues without a value get load 0 and resources without a capacity get the total load, which no route can exceed |
 | `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day, skills, capacity |
+| `vehicle.breaks` | The resource's optional daily break (window + duration), anchored on each working day |
 | travel times | Computed by VROOM through OSRM; no matrix handling in the plugin |
 
 Issue selection for a run: all open issues of the project that have
@@ -233,8 +234,11 @@ there is no further UI dependency.
 3. **Phase 3** (done, issues #24 to #27): skills, capacity, per-resource
    working days, multi-day planning. Full per-weekday hour patterns
    remain future work.
-4. **Phase 4** (issue #5): shipments (pickup/delivery), breaks,
-   alternative solver backends (pgvroom, pg_scheduleserv).
+4. **Phase 4** (issue #5, split into #32 breaks / #33 shipments /
+   #34 solver backend registry): breaks are implemented; shipments map a
+   pickup issue that *blocks* its delivery issue onto a VROOM shipment;
+   pgvroom and pg_scheduleserv remain documented candidates behind the
+   adapter interface.
 
 ## 11. Testing
 

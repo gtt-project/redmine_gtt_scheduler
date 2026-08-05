@@ -21,6 +21,10 @@ class SchedulerResource < ApplicationRecord
   validates :work_starts, :work_ends, presence: true, format: {with: TIME_OF_DAY}
   validates :capacity, numericality: {only_integer: true, greater_than_or_equal_to: 0},
                        allow_nil: true
+  validates :break_starts, :break_ends, format: {with: TIME_OF_DAY}, allow_blank: true
+  validates :break_minutes, numericality: {only_integer: true, greater_than: 0},
+                            allow_nil: true
+  validate :validate_break
   validate :validate_work_range
 
   scope :active, -> { where(active: true) }
@@ -42,6 +46,12 @@ class SchedulerResource < ApplicationRecord
   # means "no restriction" (compare the run's resource selection).
   def works_on?(date)
     working_days.empty? || working_days.include?(date.cwday)
+  end
+
+  # The daily break is on only when the whole triple is set; a partial
+  # configuration is rejected by validation rather than half-applied.
+  def break?
+    break_starts.present? && break_ends.present? && break_minutes.present?
   end
 
   # [lon, lat] pairs for the solver; the end location defaults to the
@@ -69,5 +79,20 @@ class SchedulerResource < ApplicationRecord
     return if starts.nil? || ends.nil?
 
     errors.add(:work_ends, :invalid) if ends <= starts
+  end
+
+  def validate_break
+    fields = [break_starts.presence, break_ends.presence, break_minutes.presence]
+    if fields.any? && !fields.all?
+      errors.add(:base, :scheduler_break_incomplete)
+      return
+    end
+    return unless break?
+
+    starts = self.class.minutes_of_day(break_starts)
+    ends = self.class.minutes_of_day(break_ends)
+    return if starts.nil? || ends.nil?
+
+    errors.add(:break_ends, :invalid) if ends <= starts
   end
 end

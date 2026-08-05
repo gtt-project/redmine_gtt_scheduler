@@ -45,6 +45,12 @@ module RedmineGttScheduler
             }.tap do |v|
               v['skills'] = vehicle.skills if vehicle.skills.present?
               v['capacity'] = vehicle.capacity if vehicle.capacity.present?
+              if vehicle.breaks.present?
+                v['breaks'] = vehicle.breaks.map do |brk|
+                  {'id' => brk[:id], 'time_windows' => [brk[:time_window]],
+                   'service' => brk[:service]}
+                end
+              end
             end
           end
         }

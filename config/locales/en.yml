@@ -3,6 +3,7 @@ en:
     errors:
       messages:
         range_too_long: "must not make the range longer than %{count} days"
+        scheduler_break_incomplete: "The break needs its start, end, and duration, or none of them."
     attributes:
       scheduler_run:
         scheduled_on: Planning day
@@ -51,6 +52,10 @@ en:
   text_scheduler_unassigned_over_capacity: its load is larger than any resource's capacity
   field_scheduler_working_days: Working days
   text_scheduler_working_days_hint: Days this resource works. No day checked means every day.
+  field_scheduler_break_starts: Break window from
+  field_scheduler_break_ends: Break window until
+  field_scheduler_break_minutes: Break duration (minutes)
+  text_scheduler_break_hint: A daily break of this duration is planned inside the window. Leave all three empty for no break.
   button_scheduler_solve: Solve
   button_scheduler_apply: Apply to issues
   button_scheduler_discard: Discard

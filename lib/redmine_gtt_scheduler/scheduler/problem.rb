@@ -12,8 +12,10 @@ module RedmineGttScheduler
     class Problem
       Job = Struct.new(:id, :location, :service, :time_window, :priority, :skills,
                        :delivery, keyword_init: true)
+      # breaks is an array of {id:, time_window:, service:} hashes, one
+      # per break the vehicle must take within its day.
       Vehicle = Struct.new(:id, :start, :end, :time_window, :skills, :capacity,
-                           keyword_init: true)
+                           :breaks, keyword_init: true)
 
       attr_reader :jobs, :vehicles, :excluded, :vehicle_index
 

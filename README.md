@@ -18,9 +18,10 @@ geometry when the solver is asked for it), an hour-level timeline, and
 locally derived diagnostics for unassigned issues, skills matching
 (an issue requiring skills is only assigned to a resource that has all
 of them), capacity limits (each issue's load counts against the
-resource's capacity), per-resource working days, and multi-day planning
-(a run can cover a range of days, with one route per resource per
-working day). Pickup/delivery and breaks
+resource's capacity), per-resource working days, daily breaks, and
+multi-day planning (a run can cover a range of days, with one route per
+resource per working day). Pickup/delivery pairs and alternative solver
+backends
 ([#5](https://github.com/gtt-project/redmine_gtt_scheduler/issues/5))
 are planned. See [docs/design.md](docs/design.md) for the design
 document.

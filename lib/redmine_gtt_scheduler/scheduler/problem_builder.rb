@@ -159,8 +159,34 @@ module RedmineGttScheduler
             epoch(work_time(start_of_day, resource.work_ends))
           ],
           skills: skill_ids_of(resource.skills),
-          capacity: (@capacity_active ? [capacity_of(resource)] : nil)
+          capacity: (@capacity_active ? [capacity_of(resource)] : nil),
+          breaks: breaks_of(resource, start_of_day)
         )
+      end
+
+      # The resource's daily break, anchored on this vehicle's day. The
+      # id only needs to be unique within the vehicle.
+      #
+      # Defensive against values written past the validations, like the
+      # capacity handling above: a malformed break (unparsable times, an
+      # inverted window, a non-positive duration) is omitted rather than
+      # sent to the solver.
+      def breaks_of(resource, start_of_day)
+        return nil unless resource.break?
+
+        starts = SchedulerResource.minutes_of_day(resource.break_starts)
+        ends = SchedulerResource.minutes_of_day(resource.break_ends)
+        minutes = resource.break_minutes.to_i
+        return nil if starts.nil? || ends.nil? || ends <= starts || minutes <= 0
+
+        [{
+          id: 1,
+          time_window: [
+            epoch(start_of_day + starts.minutes),
+            epoch(start_of_day + ends.minutes)
+          ],
+          service: minutes * 60
+        }]
       end
 
       # nil rather than [] when there is nothing to say, so the adapter

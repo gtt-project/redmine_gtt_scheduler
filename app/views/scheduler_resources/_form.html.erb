@@ -26,6 +26,12 @@
     <% end %>
     <em class="info"><%= l(:text_scheduler_working_days_hint) %></em>
   </p>
+  <p><%= f.time_field :break_starts, label: :field_scheduler_break_starts %></p>
+  <p><%= f.time_field :break_ends, label: :field_scheduler_break_ends %></p>
+  <p>
+    <%= f.number_field :break_minutes, min: 1, label: :field_scheduler_break_minutes %>
+    <em class="info"><%= l(:text_scheduler_break_hint) %></em>
+  </p>
   <% if RedmineGttScheduler.capacity_custom_field %>
     <p>
       <%= f.number_field :capacity, min: 0, label: :field_scheduler_capacity %>
