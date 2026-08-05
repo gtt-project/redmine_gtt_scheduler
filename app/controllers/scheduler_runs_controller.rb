@@ -19,9 +19,12 @@ class SchedulerRunsController < ApplicationController
   end
 
   def show
+    # Ordered by start time before sequence: a multi-day run repeats the
+    # per-route sequence numbers on every day, so time is what separates
+    # the days.
     @assignments = @run.scheduler_assignments
                        .includes(:issue, :scheduler_resource)
-                       .order(:scheduler_resource_id, :sequence)
+                       .order(:scheduler_resource_id, :starts_at, :sequence)
     # Grouped and ordered by resource id so a resource's swatch, timeline and
     # table always line up with each other. Note the map does not follow these
     # colours: redmine_gtt's renderer styles all features alike and ignores the
@@ -33,7 +36,7 @@ class SchedulerRunsController < ApplicationController
                                            .sort_by { |resource, _| [resource ? 0 : 1, resource&.id || 0] }
     if @assignments.any?
       @route_geojson = RedmineGttScheduler::Scheduler::RouteGeoJson.call(
-        @assignments, geometries: @run.route_geometries
+        @assignments, geometries: @run.route_geometries_by_resource
       )
       # Whether any route is a real road path decides which hint the map shows,
       # so an older run is not described as following roads it never had.
@@ -54,7 +57,8 @@ class SchedulerRunsController < ApplicationController
     @run = @project.scheduler_runs.build(
       user: User.current,
       status: SchedulerRun::DRAFT,
-      scheduled_on: params.dig(:scheduler_run, :scheduled_on)
+      scheduled_on: params.dig(:scheduler_run, :scheduled_on),
+      scheduled_until: params.dig(:scheduler_run, :scheduled_until).presence
     )
     @run.selected_resources = selected_resources
     if @run.save

@@ -99,6 +99,27 @@ class SchedulerRunsControllerTest < Redmine::ControllerTest
                   "/projects/#{@project.identifier}/scheduler_runs/#{run.id}/discard"
   end
 
+  test 'show groups a multi-day run by day within each resource' do
+    resource = build_resource(@project)
+    run = build_run(@project, @user, Date.new(2026, 8, 10),
+                    scheduled_until: Date.new(2026, 8, 11),
+                    status: SchedulerRun::PROPOSED)
+    # Sequences restart per day, so each day must get its own table.
+    [[1, Date.new(2026, 8, 10)], [1, Date.new(2026, 8, 11)]].each_with_index do |(sequence, day), i|
+      run.scheduler_assignments.create!(
+        issue: Issue.find(i + 1), scheduler_resource: resource, sequence: sequence,
+        starts_at: Time.utc(day.year, day.month, day.day, 9, 0),
+        ends_at: Time.utc(day.year, day.month, day.day, 10, 0)
+      )
+    end
+
+    get :show, params: {project_id: @project.identifier, id: run.id}
+
+    assert_response :success
+    assert_select 'h4.scheduler-day', count: 2
+    assert_select 'table.list tbody tr', count: 2
+  end
+
   test 'discard marks a proposed run as discarded' do
     run = build_run(@project, @user, Date.new(2026, 8, 3), status: SchedulerRun::PROPOSED)
 

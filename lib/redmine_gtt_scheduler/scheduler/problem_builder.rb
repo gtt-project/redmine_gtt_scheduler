@@ -1,9 +1,9 @@
 module RedmineGttScheduler
   module Scheduler
     # Builds a Scheduler::Problem for one run: open, geolocated issues of
-    # the run's project become jobs; active resources become vehicles.
-    # All times are anchored on the run's planning day in the reference
-    # zone and expressed as epoch seconds.
+    # the run's project become jobs; active resources become vehicles,
+    # one per resource and working day of the planning range. All times
+    # are anchored in the reference zone and expressed as epoch seconds.
     class ProblemBuilder
       def initialize(run)
         @run = run
@@ -12,19 +12,21 @@ module RedmineGttScheduler
         # they are consulted for every issue.
         @skills_field = RedmineGttScheduler.skills_custom_field
         @capacity_field = RedmineGttScheduler.capacity_custom_field
-        date = run.scheduled_on
-        @day_start = @zone.local(date.year, date.month, date.day)
-        @day_end = @day_start + 1.day
+        @days = run.planning_days
+        @range_start = day_start(@days.first)
+        @range_end = day_start(@days.last) + 1.day
       end
 
       def build
         excluded = {}
         @skill_ids = skill_id_map
         @capacity_active = capacity_active?
+        vehicles, vehicle_index = build_vehicles
         Problem.new(
           jobs: build_jobs(excluded),
-          vehicles: build_vehicles,
-          excluded: excluded
+          vehicles: vehicles,
+          excluded: excluded,
+          vehicle_index: vehicle_index
         )
       end
 
@@ -79,7 +81,7 @@ module RedmineGttScheduler
 
         window = time_window_of(issue)
         if window.nil?
-          excluded[issue.id] = 'outside_planning_day'
+          excluded[issue.id] = @days.size > 1 ? 'outside_planning_range' : 'outside_planning_day'
           return nil
         end
 
@@ -125,21 +127,40 @@ module RedmineGttScheduler
         @resources ||= @run.resources_for_solving.to_a
       end
 
+      # One vehicle per resource per working day. Single-day runs keep
+      # vehicle id == resource id (and an empty index), so their stored
+      # payloads read exactly as before multi-day planning existed;
+      # multi-day runs use synthetic sequential ids and report the
+      # mapping in the returned index.
       def build_vehicles
-        resources.select { |resource| resource.works_on?(@run.scheduled_on) }
-                 .map do |resource|
-          Problem::Vehicle.new(
-            id: resource.id,
-            start: resource.start_location,
-            end: resource.end_location,
-            time_window: [
-              epoch(combine_day(resource.work_starts)),
-              epoch(combine_day(resource.work_ends))
-            ],
-            skills: skill_ids_of(resource.skills),
-            capacity: (@capacity_active ? [capacity_of(resource)] : nil)
-          )
+        multi_day = @days.size > 1
+        vehicles = []
+        index = {}
+        resources.each do |resource|
+          @days.each do |day|
+            next unless resource.works_on?(day)
+
+            id = multi_day ? vehicles.size + 1 : resource.id
+            index[id] = [resource.id, day] if multi_day
+            vehicles << build_vehicle(id, resource, day)
+          end
         end
+        [vehicles, index]
+      end
+
+      def build_vehicle(id, resource, day)
+        start_of_day = day_start(day)
+        Problem::Vehicle.new(
+          id: id,
+          start: resource.start_location,
+          end: resource.end_location,
+          time_window: [
+            epoch(work_time(start_of_day, resource.work_starts)),
+            epoch(work_time(start_of_day, resource.work_ends))
+          ],
+          skills: skill_ids_of(resource.skills),
+          capacity: (@capacity_active ? [capacity_of(resource)] : nil)
+        )
       end
 
       # nil rather than [] when there is nothing to say, so the adapter
@@ -154,19 +175,19 @@ module RedmineGttScheduler
       end
 
       # Window from redmine_issue_datetime timestamps when present, from
-      # the plain dates otherwise, clamped to the planning day. Returns
-      # nil when the window does not intersect the day.
+      # the plain dates otherwise, clamped to the planning range. Returns
+      # nil when the window does not intersect the range.
       def time_window_of(issue)
         record = issue.issue_datetime
         open_at = record&.starts_at ||
-                  (issue.start_date && @zone.local(issue.start_date.year, issue.start_date.month, issue.start_date.day)) ||
-                  @day_start
+                  (issue.start_date && day_start(issue.start_date)) ||
+                  @range_start
         close_at = record&.ends_at ||
-                   (issue.due_date && @zone.local(issue.due_date.year, issue.due_date.month, issue.due_date.day) + 1.day) ||
-                   @day_end
+                   (issue.due_date && day_start(issue.due_date) + 1.day) ||
+                   @range_end
 
-        open_at = [open_at, @day_start].max
-        close_at = [close_at, @day_end].min
+        open_at = [open_at, @range_start].max
+        close_at = [close_at, @range_end].min
         return nil if close_at <= open_at
 
         [epoch(open_at), epoch(close_at)]
@@ -183,8 +204,12 @@ module RedmineGttScheduler
         (position * 10).clamp(0, 100)
       end
 
-      def combine_day(time_of_day)
-        @day_start + (SchedulerResource.minutes_of_day(time_of_day) || 0).minutes
+      def day_start(date)
+        @zone.local(date.year, date.month, date.day)
+      end
+
+      def work_time(start_of_day, time_of_day)
+        start_of_day + (SchedulerResource.minutes_of_day(time_of_day) || 0).minutes
       end
 
       def epoch(time)

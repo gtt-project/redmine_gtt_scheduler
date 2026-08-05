@@ -91,13 +91,21 @@ end
 create_table :scheduler_runs do |t|
   t.references :project, null: false
   t.references :user, null: false   # who started it
-  t.date    :scheduled_on, null: false   # the day being planned (v1: single day)
+  t.date    :scheduled_on, null: false   # first (or only) day being planned
+  t.date    :scheduled_until       # last day; NULL = single-day run
   t.string  :status, null: false    # draft / solving / proposed / applied / failed / discarded
   t.text    :request_payload        # VROOM request (debugging, reproducibility)
   t.text    :response_payload       # VROOM response
+  t.text    :vehicle_map            # solver vehicle id => [resource id, date]; NULL for single-day
   t.text    :error_message
   t.timestamps
 end
+
+# Multi-day runs plan every issue of the range in one optimization, with
+# one solver vehicle per resource per working day (synthetic ids; the
+# stored vehicle_map translates them back). Single-day runs keep vehicle
+# id == resource id, so their payloads read as they always did. The
+# range length is capped (14 days) to bound the problem size.
 
 # Proposed (and later applied) assignments belonging to a run
 create_table :scheduler_assignments do |t|
@@ -150,7 +158,7 @@ are explicitly out of scope for v1 and tracked as later phases.
 ## 5. Workflow: propose, then apply
 
 1. **Compose**: dispatcher opens the Scheduler view in a project, picks
-   the day and the resources to plan with.
+   the day (optionally a range of days) and the resources to plan with.
 2. **Solve**: the run is created (`solving`) and the adapter is called in
    a background job. Request and response payloads are stored on the run.
    The run always ends in a terminal status: any solver or unexpected
@@ -222,8 +230,9 @@ there is no further UI dependency.
 2. **Phase 2** (done): map view of routes with per-resource colours and
    toggles, real road geometry, hour-level timeline, unassigned job
    diagnostics, per-run resource selection.
-3. **Phase 3** (issue #4): skills and capacity, resource working-hour
-   patterns, multi-day planning.
+3. **Phase 3** (done, issues #24 to #27): skills, capacity, per-resource
+   working days, multi-day planning. Full per-weekday hour patterns
+   remain future work.
 4. **Phase 4** (issue #5): shipments (pickup/delivery), breaks,
    alternative solver backends (pgvroom, pg_scheduleserv).
 

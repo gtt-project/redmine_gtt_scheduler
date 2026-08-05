@@ -23,7 +23,7 @@
       <% @runs.each do |run| %>
         <tr>
           <td><%= link_to "##{run.id}", project_scheduler_run_path(@project, run) %></td>
-          <td><%= format_date(run.scheduled_on) %></td>
+          <td><%= format_date(run.scheduled_on) %><% if run.multi_day? %> - <%= format_date(run.scheduled_until) %><% end %></td>
           <td><%= scheduler_run_status(run) %></td>
           <td><%= run.user %></td>
           <td><%= @assignment_counts[run.id] || 0 %></td>

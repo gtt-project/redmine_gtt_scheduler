@@ -19,7 +19,7 @@ module RedmineGttScheduler
           raise SolverError, "VROOM error #{response['code']}: #{response['error']}"
         end
 
-        build_solution(request, response)
+        build_solution(problem, request, response)
       end
 
       def build_request(problem)
@@ -85,7 +85,7 @@ module RedmineGttScheduler
         end
       end
 
-      def build_solution(request, response)
+      def build_solution(problem, request, response)
         assignments = []
         response.fetch('routes', []).each do |route|
           sequence = 0
@@ -99,7 +99,9 @@ module RedmineGttScheduler
             service_start = step['arrival'].to_i + step['waiting_time'].to_i
             assignments << Solution::Assignment.new(
               issue_id: step['id'],
-              resource_id: route['vehicle'],
+              # Multi-day problems use synthetic vehicle ids (one vehicle
+              # per resource per day); the problem maps them back.
+              resource_id: problem.resource_id_for(route['vehicle']),
               sequence: sequence,
               starts_at: Time.at(service_start).utc,
               ends_at: Time.at(service_start + step['service'].to_i).utc,

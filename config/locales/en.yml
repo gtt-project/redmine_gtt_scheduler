@@ -1,4 +1,12 @@
 en:
+  activerecord:
+    errors:
+      messages:
+        range_too_long: "must not make the range longer than %{count} days"
+    attributes:
+      scheduler_run:
+        scheduled_on: Planning day
+        scheduled_until: Last planning day
   label_scheduler: Scheduler
   label_scheduler_run: Scheduler run
   label_scheduler_run_new: New run
@@ -20,6 +28,9 @@ en:
   label_scheduler_default_service: Default service time (minutes)
   label_scheduler_timeout: Solver timeout (seconds)
   field_scheduled_on: Planning day
+  field_scheduled_until: Last planning day
+  text_scheduler_until_hint: "Leave empty to plan a single day. At most %{days} days."
+  text_scheduler_excluded_outside_planning_range: outside the planning range
   field_work_starts: Work starts
   field_work_ends: Work ends
   field_start_lng: Start longitude

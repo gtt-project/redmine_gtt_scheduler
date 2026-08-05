@@ -18,9 +18,9 @@ geometry when the solver is asked for it), an hour-level timeline, and
 locally derived diagnostics for unassigned issues, skills matching
 (an issue requiring skills is only assigned to a resource that has all
 of them), capacity limits (each issue's load counts against the
-resource's capacity), and per-resource working days. Multi-day planning
-([#4](https://github.com/gtt-project/redmine_gtt_scheduler/issues/4))
-and pickup/delivery
+resource's capacity), per-resource working days, and multi-day planning
+(a run can cover a range of days, with one route per resource per
+working day). Pickup/delivery and breaks
 ([#5](https://github.com/gtt-project/redmine_gtt_scheduler/issues/5))
 are planned. See [docs/design.md](docs/design.md) for the design
 document.
@@ -75,9 +75,9 @@ sure a worker is running or runs will stay in "solving".
 
 ## How it works
 
-1. A dispatcher picks a planning day, selects the resources to plan
-   with, and starts a run. All open issues of the project that have a
-   location are planned.
+1. A dispatcher picks a planning day (or a range of days), selects the
+   resources to plan with, and starts a run. All open issues of the
+   project that have a location are planned.
 2. Issue time windows come from redmine_issue_datetime, service time
    from `estimated_hours` (with a configurable default), priority from
    the issue priority, and required skills and load from configurable

@@ -60,9 +60,22 @@ module RedmineGttScheduler
             request_payload: JSON.pretty_generate(solution.request),
             response_payload: JSON.pretty_generate(solution.raw),
             excluded_issues: JSON.generate(problem.excluded),
+            vehicle_map: vehicle_map_json(problem),
             error_message: nil
           )
         end
+      end
+
+      # Multi-day problems use one synthetic vehicle per resource per day;
+      # the mapping is stored so readers of the response payload (route
+      # geometry) can get back to the resource. nil for single-day runs,
+      # whose vehicle ids are the resource ids.
+      def vehicle_map_json(problem)
+        return nil if problem.vehicle_index.empty?
+
+        JSON.generate(problem.vehicle_index.transform_values do |(resource_id, date)|
+          [resource_id, date.iso8601]
+        end)
       end
 
       def fail_run(message, excluded: nil)

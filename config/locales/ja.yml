@@ -1,4 +1,12 @@
 ja:
+  activerecord:
+    errors:
+      messages:
+        range_too_long: "は計画期間が%{count}日を超えないようにしてください"
+    attributes:
+      scheduler_run:
+        scheduled_on: 計画日
+        scheduled_until: 計画終了日
   label_scheduler: スケジューラー
   label_scheduler_run: 最適化実行
   label_scheduler_run_new: 新しい実行
@@ -20,6 +28,9 @@ ja:
   label_scheduler_default_service: デフォルト作業時間（分）
   label_scheduler_timeout: ソルバーのタイムアウト（秒）
   field_scheduled_on: 計画日
+  field_scheduled_until: 計画終了日
+  text_scheduler_until_hint: "空欄の場合は1日だけを計画します。最大%{days}日間です。"
+  text_scheduler_excluded_outside_planning_range: 計画期間の範囲外
   field_work_starts: 勤務開始
   field_work_ends: 勤務終了
   field_start_lng: 開始地点の経度
