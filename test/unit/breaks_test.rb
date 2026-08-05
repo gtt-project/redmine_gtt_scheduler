@@ -104,6 +104,26 @@ class BreaksTest < ActiveSupport::TestCase
     assert_equal [600, 300], travels
   end
 
+  # Values written past the validations must not reach the solver as a
+  # zero-length or inverted break.
+  test 'a malformed stored break is omitted rather than sent to the solver' do
+    resource = break_resource
+    resource.update_columns(break_starts: '14:00', break_ends: '12:00')
+
+    problem = Builder.new(build_run(@project, @user, DAY_ONE)).build
+
+    assert_nil problem.vehicles.first.breaks
+  end
+
+  test 'a non-positive stored duration is omitted too' do
+    resource = break_resource
+    resource.update_columns(break_minutes: 0)
+
+    problem = Builder.new(build_run(@project, @user, DAY_ONE)).build
+
+    assert_nil problem.vehicles.first.breaks
+  end
+
   test 'a partial break configuration is rejected' do
     resource = build_resource(@project)
     resource.break_starts = '12:00'
