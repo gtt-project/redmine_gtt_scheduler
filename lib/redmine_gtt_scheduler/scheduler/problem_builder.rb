@@ -16,6 +16,7 @@ module RedmineGttScheduler
       def build
         excluded = {}
         @skill_ids = skill_id_map
+        @capacity_active = capacity_active?
         Problem.new(
           jobs: build_jobs(excluded),
           vehicles: build_vehicles,
@@ -30,9 +31,11 @@ module RedmineGttScheduler
           scope = @run.project.issues.open
                       .where.not(geom: nil)
                       .includes(:issue_datetime, :priority)
-          # Custom values are only read when the skills feature is on, so
-          # only preload them then.
-          scope = scope.includes(:custom_values) if RedmineGttScheduler.skills_custom_field
+          # Custom values are only read by the skills and capacity
+          # features, so only preload them when one is on.
+          if RedmineGttScheduler.skills_custom_field || RedmineGttScheduler.capacity_custom_field
+            scope = scope.includes(:custom_values)
+          end
           scope.to_a
         end
       end
@@ -85,8 +88,31 @@ module RedmineGttScheduler
           service: service_seconds(issue),
           time_window: window,
           priority: priority_of(issue),
-          skills: skill_ids_of(issue_skill_names(issue))
+          skills: skill_ids_of(issue_skill_names(issue)),
+          delivery: (@capacity_active ? [load_of(issue)] : nil)
         )
+      end
+
+      # The capacity dimension is only emitted when the field is set and
+      # at least one issue actually carries load: an all-zero dimension
+      # would constrain nothing, and the solver requires every job and
+      # vehicle to carry it once any does.
+      def capacity_active?
+        RedmineGttScheduler.capacity_custom_field.present? &&
+          plannable_issues.any? { |issue| load_of(issue).positive? }
+      end
+
+      def load_of(issue)
+        field = RedmineGttScheduler.capacity_custom_field
+        return 0 if field.nil?
+
+        [issue.custom_field_value(field).to_i, 0].max
+      end
+
+      # An unlimited resource still needs a number the solver accepts, so
+      # it gets the total load of all jobs, which no route can exceed.
+      def unlimited_capacity
+        @unlimited_capacity ||= [plannable_issues.sum { |issue| load_of(issue) }, 1].max
       end
 
       def resources
@@ -103,7 +129,8 @@ module RedmineGttScheduler
               epoch(combine_day(resource.work_starts)),
               epoch(combine_day(resource.work_ends))
             ],
-            skills: skill_ids_of(resource.skills)
+            skills: skill_ids_of(resource.skills),
+            capacity: (@capacity_active ? [resource.capacity || unlimited_capacity] : nil)
           )
         end
       end
