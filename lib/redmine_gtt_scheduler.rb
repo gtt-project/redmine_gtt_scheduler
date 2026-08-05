@@ -1,3 +1,4 @@
+require_relative 'redmine_gtt_scheduler/scheduler'
 require_relative 'redmine_gtt_scheduler/project_extension'
 require_relative 'redmine_gtt_scheduler/scheduler/geometry'
 require_relative 'redmine_gtt_scheduler/scheduler/polyline'
@@ -64,6 +65,11 @@ module RedmineGttScheduler
 
     field = IssueCustomField.find_by(id: id)
     field if field&.field_format == 'int'
+  end
+
+  # The configured solver backend name; see Scheduler.register_adapter.
+  def self.solver_backend
+    settings['solver_backend'].presence || Scheduler::DEFAULT_ADAPTER_NAME
   end
 
   # Relation types that may mark a shipment pair. "precedes" is

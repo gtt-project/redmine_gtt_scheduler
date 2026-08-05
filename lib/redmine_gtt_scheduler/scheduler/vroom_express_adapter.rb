@@ -151,5 +151,9 @@ module RedmineGttScheduler
         )
       end
     end
+
+    # Registered at load time, like Redmine's own field formats, so the
+    # default backend exists as soon as the class does.
+    Scheduler.register_adapter(Scheduler::DEFAULT_ADAPTER_NAME, Scheduler::VroomExpressAdapter)
   end
 end
