@@ -15,12 +15,22 @@ module RedmineGttScheduler
       Vehicle = Struct.new(:id, :start, :end, :time_window, :skills, :capacity,
                            keyword_init: true)
 
-      attr_reader :jobs, :vehicles, :excluded
+      attr_reader :jobs, :vehicles, :excluded, :vehicle_index
 
-      def initialize(jobs: [], vehicles: [], excluded: {})
+      # vehicle_index maps a solver vehicle id to [resource id, Date].
+      # Multi-day problems have one vehicle per resource per working day
+      # with synthetic ids; single-day problems keep vehicle id ==
+      # resource id and an empty index.
+      def initialize(jobs: [], vehicles: [], excluded: {}, vehicle_index: {})
         @jobs = jobs
         @vehicles = vehicles
         @excluded = excluded
+        @vehicle_index = vehicle_index
+      end
+
+      def resource_id_for(vehicle_id)
+        entry = vehicle_index[vehicle_id]
+        entry ? entry.first : vehicle_id
       end
 
       def solvable?

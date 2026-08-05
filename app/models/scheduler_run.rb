@@ -14,8 +14,14 @@ class SchedulerRun < ApplicationRecord
   has_many :selected_resources, through: :scheduler_run_resources,
                                 source: :scheduler_resource
 
+  # Guard on the problem size: every extra day multiplies the vehicle
+  # count, and a mistyped year would otherwise ask the solver for
+  # thousands of vehicles.
+  MAX_PLANNING_DAYS = 14
+
   validates :scheduled_on, presence: true
   validates :status, inclusion: {in: STATUSES}
+  validate :validate_planning_range
 
   scope :sorted, -> { order(id: :desc) }
 
@@ -25,6 +31,16 @@ class SchedulerRun < ApplicationRecord
 
   def discardable?
     proposed? || failed? || draft?
+  end
+
+  # The days this run plans. A run without an end date plans one day,
+  # which is what every run was before multi-day planning existed.
+  def planning_days
+    (scheduled_on..(scheduled_until || scheduled_on)).to_a
+  end
+
+  def multi_day?
+    scheduled_until.present? && scheduled_until > scheduled_on
   end
 
   # The resources this run plans with.
@@ -60,9 +76,10 @@ class SchedulerRun < ApplicationRecord
     {}
   end
 
-  # Encoded route geometry per resource id, read back out of the stored solver
-  # response so no extra column is needed. Empty for runs solved without
-  # geometry, which the map handles by drawing straight legs.
+  # Encoded route geometry per solver vehicle id, read back out of the
+  # stored solver response so no extra column is needed. Empty for runs
+  # solved without geometry, which the map handles by drawing straight
+  # legs.
   def route_geometries
     response = parsed_response
     response.fetch('routes', []).each_with_object({}) do |route, out|
@@ -70,7 +87,45 @@ class SchedulerRun < ApplicationRecord
     end
   end
 
+  # The same geometries grouped per resource, each with the ISO date of
+  # the day it belongs to: a multi-day run has one solver vehicle (and so
+  # one route) per resource per working day. For single-day runs, whose
+  # vehicle ids are the resource ids, the map is absent, the vehicle id
+  # is used directly, and the date is nil.
+  # => { resource_id => [{'date' => '2026-08-03'|nil, 'geometry' => '...'}] }
+  def route_geometries_by_resource
+    map = parsed_vehicle_map
+    route_geometries.each_with_object({}) do |(vehicle_id, geometry), out|
+      resource_id, date = map[vehicle_id] || [vehicle_id, nil]
+      (out[resource_id] ||= []) << {'date' => date, 'geometry' => geometry}
+    end
+  end
+
+  # => { solver vehicle id => [resource id, ISO date string] }
+  def parsed_vehicle_map
+    parsed = JSON.parse(vehicle_map.presence || '{}')
+    return {} unless parsed.is_a?(Hash)
+
+    # JSON object keys are strings; vehicle ids in the response are
+    # integers.
+    parsed.transform_keys(&:to_i)
+  rescue JSON::ParserError
+    {}
+  end
+
   def unassigned_issue_ids
     parsed_response.fetch('unassigned', []).map { |u| u['id'] }
+  end
+
+  private
+
+  def validate_planning_range
+    return if scheduled_until.nil? || scheduled_on.nil?
+
+    if scheduled_until < scheduled_on
+      errors.add(:scheduled_until, :greater_than_start_date)
+    elsif planning_days.size > MAX_PLANNING_DAYS
+      errors.add(:scheduled_until, :invalid)
+    end
   end
 end
