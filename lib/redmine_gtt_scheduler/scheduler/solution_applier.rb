@@ -4,7 +4,9 @@ module RedmineGttScheduler
     # via redmine_issue_datetime, assignee from the resource. All-or-
     # nothing inside a transaction; every change is journalized.
     class SolutionApplier
-      Result = Struct.new(:success, :message, keyword_init: true) do
+      # warning carries a non-fatal message for a successful apply, for
+      # example when some times could not be stored.
+      Result = Struct.new(:success, :message, :warning, keyword_init: true) do
         def success?
           success
         end
@@ -38,7 +40,7 @@ module RedmineGttScheduler
           assignments.each { |assignment| apply_assignment(assignment) }
           @run.update!(status: SchedulerRun::APPLIED)
         end
-        Result.new(success: true)
+        Result.new(success: true, warning: times_warning(assignments))
       rescue ActiveRecord::RecordInvalid => e
         Result.new(success: false, message: e.message)
       end
@@ -59,6 +61,19 @@ module RedmineGttScheduler
         assignee = assignment.scheduler_resource&.user
         issue.assigned_to = assignee if assignee
         issue.save!
+      end
+
+      # redmine_issue_datetime ignores the time setters for trackers it is
+      # not enabled for. Those issues still get their dates and assignee,
+      # but the times are lost, and the dispatcher must be told instead of
+      # seeing a clean "applied" message.
+      def times_warning(assignments)
+        skipped = assignments.filter_map(&:issue)
+                             .reject { |issue| RedmineIssueDatetime.enabled_for?(issue.tracker_id) }
+        return nil if skipped.empty?
+
+        ids = skipped.map { |issue| "##{issue.id}" }.uniq.join(', ')
+        I18n.t(:text_scheduler_times_not_stored, ids: ids)
       end
 
       def failure(key, options = {})
