@@ -27,6 +27,12 @@ en:
   field_end_lng: End longitude
   field_end_lat: End latitude
   field_active: Active
+  field_scheduler_skills: Skills
+  label_scheduler_skills_field: Skills custom field
+  label_scheduler_skills_disabled: Disabled
+  text_scheduler_skills_field_hint: A list-format issue custom field whose values name the required skills. Leave disabled if you do not use skills.
+  text_scheduler_skills_hint: "Values come from the issue custom field \"%{field}\". An issue with required skills is only assigned to a resource that has all of them."
+  text_scheduler_unassigned_missing_skills: no resource in this run has all the skills it requires
   button_scheduler_solve: Solve
   button_scheduler_apply: Apply to issues
   button_scheduler_discard: Discard

@@ -12,5 +12,20 @@
   <p class="info"><%= l(:text_scheduler_resource_end_hint) %></p>
   <p><%= f.time_field :work_starts, label: :field_work_starts %></p>
   <p><%= f.time_field :work_ends, label: :field_work_ends %></p>
+  <% if (skills_field = RedmineGttScheduler.skills_custom_field) %>
+    <p>
+      <label><%= l(:field_scheduler_skills) %></label>
+      <%# The hidden blank lets an all-unchecked form clear the list. %>
+      <%= hidden_field_tag 'scheduler_resource[skills][]', '' %>
+      <% skills_field.possible_values.each do |value| %>
+        <label class="block">
+          <%= check_box_tag 'scheduler_resource[skills][]', value,
+                            f.object.skills.include?(value) %>
+          <%= value %>
+        </label>
+      <% end %>
+      <em class="info"><%= l(:text_scheduler_skills_hint, field: skills_field.name) %></em>
+    </p>
+  <% end %>
   <p><%= f.check_box :active, label: :field_active %></p>
 </div>

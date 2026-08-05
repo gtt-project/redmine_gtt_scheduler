@@ -4,6 +4,7 @@
 
 <h2><%= l(:label_scheduler_resources) %></h2>
 
+<% skills_enabled = RedmineGttScheduler.skills_custom_field.present? %>
 <% if @resources.any? %>
   <table class="list">
     <thead>
@@ -12,6 +13,9 @@
         <th><%= l(:field_user) %></th>
         <th><%= l(:field_work_starts) %></th>
         <th><%= l(:field_work_ends) %></th>
+        <% if skills_enabled %>
+          <th><%= l(:field_scheduler_skills) %></th>
+        <% end %>
         <th><%= l(:field_active) %></th>
         <th></th>
       </tr>
@@ -23,6 +27,9 @@
           <td><%= resource.user %></td>
           <td><%= resource.work_starts %></td>
           <td><%= resource.work_ends %></td>
+          <% if skills_enabled %>
+            <td><%= resource.skills.join(', ') %></td>
+          <% end %>
           <td><%= checked_image resource.active? %></td>
           <td class="buttons">
             <%= link_to l(:button_edit), edit_project_scheduler_resource_path(@project, resource), class: 'icon icon-edit' %>
