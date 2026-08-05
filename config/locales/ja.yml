@@ -33,6 +33,11 @@ ja:
   text_scheduler_skills_field_hint: 必要なスキルを値として持つリスト形式のチケットカスタムフィールドを選択します。スキルを使わない場合は「使用しない」のままにします。
   text_scheduler_skills_hint: "値はカスタムフィールド「%{field}」から取得します。必要スキルを持つチケットは、そのすべてを備えたリソースにのみ割り当てられます。"
   text_scheduler_unassigned_missing_skills: 必要なスキルをすべて備えたリソースがこの実行にありません
+  field_scheduler_capacity: 積載容量
+  label_scheduler_capacity_field: 積載量用カスタムフィールド
+  text_scheduler_capacity_field_hint: 各チケットの積載量を表す整数形式のチケットカスタムフィールドを選択します。容量制限を使わない場合は「使用しない」のままにします。
+  text_scheduler_capacity_hint: このリソースが1回の実行で運べる量です。空欄にすると無制限になります。
+  text_scheduler_unassigned_over_capacity: 積載量がどのリソースの容量よりも大きいです
   button_scheduler_solve: 計算する
   button_scheduler_apply: チケットに適用
   button_scheduler_discard: 破棄

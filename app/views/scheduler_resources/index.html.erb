@@ -5,6 +5,7 @@
 <h2><%= l(:label_scheduler_resources) %></h2>
 
 <% skills_enabled = RedmineGttScheduler.skills_custom_field.present? %>
+<% capacity_enabled = RedmineGttScheduler.capacity_custom_field.present? %>
 <% if @resources.any? %>
   <table class="list">
     <thead>
@@ -13,6 +14,9 @@
         <th><%= l(:field_user) %></th>
         <th><%= l(:field_work_starts) %></th>
         <th><%= l(:field_work_ends) %></th>
+        <% if capacity_enabled %>
+          <th><%= l(:field_scheduler_capacity) %></th>
+        <% end %>
         <% if skills_enabled %>
           <th><%= l(:field_scheduler_skills) %></th>
         <% end %>
@@ -27,6 +31,9 @@
           <td><%= resource.user %></td>
           <td><%= resource.work_starts %></td>
           <td><%= resource.work_ends %></td>
+          <% if capacity_enabled %>
+            <td><%= resource.capacity || l(:label_none) %></td>
+          <% end %>
           <% if skills_enabled %>
             <td><%= resource.skills.join(', ') %></td>
           <% end %>

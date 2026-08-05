@@ -8,6 +8,7 @@ module RedmineGttScheduler
     # them as such rather than pretending the solver reported them.
     class UnassignedReport
       MISSING_SKILLS = :missing_skills
+      OVER_CAPACITY = :over_capacity
       OUTSIDE_WORKING_HOURS = :outside_working_hours
       LONGER_THAN_SHIFT = :service_longer_than_shift
       NO_ROOM = :no_room_in_plan
@@ -38,12 +39,15 @@ module RedmineGttScheduler
       def reason_for(job, vehicles)
         return UNKNOWN if job.nil? || vehicles.empty?
 
-        # Skills first, and the window analysis below only looks at the
-        # vehicles that could serve the job at all: "outside working
+        # Hard constraints first, and each later analysis only looks at
+        # the vehicles that survive the earlier ones: "outside working
         # hours" would be misleading if the overlapping shift belongs to
-        # a resource lacking the skills.
+        # a resource that could never take the job anyway.
         capable = capable_vehicles(job, vehicles)
         return MISSING_SKILLS if capable.empty?
+
+        capable = fitting_vehicles(job, capable)
+        return OVER_CAPACITY if capable.empty?
 
         open_at, close_at = job.time_window
         return UNKNOWN if open_at.nil? || close_at.nil?
@@ -63,6 +67,13 @@ module RedmineGttScheduler
         return vehicles if required.empty?
 
         vehicles.select { |vehicle| (required - Array(vehicle.skills)).empty? }
+      end
+
+      def fitting_vehicles(job, vehicles)
+        load = job.delivery&.first.to_i
+        return vehicles unless load.positive?
+
+        vehicles.select { |vehicle| vehicle.capacity.nil? || vehicle.capacity.first.to_i >= load }
       end
     end
   end

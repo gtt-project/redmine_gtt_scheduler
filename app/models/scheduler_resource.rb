@@ -15,6 +15,8 @@ class SchedulerResource < ApplicationRecord
   validates :start_lng, :start_lat, presence: true, numericality: true
   validates :end_lng, :end_lat, numericality: true, allow_nil: true
   validates :work_starts, :work_ends, presence: true, format: {with: TIME_OF_DAY}
+  validates :capacity, numericality: {only_integer: true, greater_than_or_equal_to: 0},
+                       allow_nil: true
   validate :validate_work_range
 
   scope :active, -> { where(active: true) }

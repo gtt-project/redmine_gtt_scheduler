@@ -20,7 +20,9 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
              'solver_timeout' => '60',
              'request_geometry' => '1',
              # Empty = skills matching off.
-             'skills_custom_field_id' => ''
+             'skills_custom_field_id' => '',
+             # Empty = capacity limits off.
+             'capacity_custom_field_id' => ''
            }
 
   project_module :gtt_scheduler do

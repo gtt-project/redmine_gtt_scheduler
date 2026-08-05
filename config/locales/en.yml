@@ -33,6 +33,11 @@ en:
   text_scheduler_skills_field_hint: A list-format issue custom field whose values name the required skills. Leave disabled if you do not use skills.
   text_scheduler_skills_hint: "Values come from the issue custom field \"%{field}\". An issue with required skills is only assigned to a resource that has all of them."
   text_scheduler_unassigned_missing_skills: no resource in this run has all the skills it requires
+  field_scheduler_capacity: Capacity
+  label_scheduler_capacity_field: Load custom field
+  text_scheduler_capacity_field_hint: An integer issue custom field carrying each issue's load. Leave disabled if you do not use capacity limits.
+  text_scheduler_capacity_hint: How much load this resource can carry in one run. Leave empty for no limit.
+  text_scheduler_unassigned_over_capacity: its load is larger than any resource's capacity
   button_scheduler_solve: Solve
   button_scheduler_apply: Apply to issues
   button_scheduler_discard: Discard

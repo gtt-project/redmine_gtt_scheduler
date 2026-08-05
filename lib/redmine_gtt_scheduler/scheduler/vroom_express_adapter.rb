@@ -31,7 +31,10 @@ module RedmineGttScheduler
               'service' => job.service,
               'time_windows' => [job.time_window],
               'priority' => job.priority
-            }.tap { |j| j['skills'] = job.skills if job.skills.present? }
+            }.tap do |j|
+              j['skills'] = job.skills if job.skills.present?
+              j['delivery'] = job.delivery if job.delivery.present?
+            end
           end,
           'vehicles' => problem.vehicles.map do |vehicle|
             {
@@ -39,7 +42,10 @@ module RedmineGttScheduler
               'start' => vehicle.start,
               'end' => vehicle.end,
               'time_window' => vehicle.time_window
-            }.tap { |v| v['skills'] = vehicle.skills if vehicle.skills.present? }
+            }.tap do |v|
+              v['skills'] = vehicle.skills if vehicle.skills.present?
+              v['capacity'] = vehicle.capacity if vehicle.capacity.present?
+            end
           end
         }
         # `g` asks VROOM for the road geometry of each route. It costs response
