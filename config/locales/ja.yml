@@ -27,6 +27,12 @@ ja:
   field_end_lng: 終了地点の経度
   field_end_lat: 終了地点の緯度
   field_active: 有効
+  field_scheduler_skills: スキル
+  label_scheduler_skills_field: スキル用カスタムフィールド
+  label_scheduler_skills_disabled: 使用しない
+  text_scheduler_skills_field_hint: 必要なスキルを値として持つリスト形式のチケットカスタムフィールドを選択します。スキルを使わない場合は「使用しない」のままにします。
+  text_scheduler_skills_hint: "値はカスタムフィールド「%{field}」から取得します。必要スキルを持つチケットは、そのすべてを備えたリソースにのみ割り当てられます。"
+  text_scheduler_unassigned_missing_skills: 必要なスキルをすべて備えたリソースがこの実行にありません
   button_scheduler_solve: 計算する
   button_scheduler_apply: チケットに適用
   button_scheduler_discard: 破棄

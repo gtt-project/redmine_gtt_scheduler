@@ -70,7 +70,8 @@ Backends:
 # the solver only ever needs a coordinate pair, and plain floats keep the
 # table independent of the GIS adapter. Working hours are HH:MM strings
 # (validated, compared as minutes since midnight); a full working-hour
-# pattern and skills/capacity are planned as issue #4.
+# pattern and capacity are planned (issues #25 to #27). skills is a JSON
+# array of names from the configured custom field's vocabulary.
 create_table :scheduler_resources do |t|
   t.references :project, null: false
   t.references :user                # optional link to a Redmine user
@@ -129,8 +130,8 @@ the stored solver response when the map needs it.
 | `job.time_windows` | `issue_datetimes.starts_at/ends_at`, falling back to the plain dates, clamped to the planning day |
 | `job.service` | `issues.estimated_hours` (converted to seconds; configurable default when empty) |
 | `job.priority` | Issue priority position, scaled to VROOM's 0..100 (no name matching) |
-| `job.skills` | Planned (issue #4) |
-| `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day |
+| `job.skills` | A list-format issue custom field picked in the plugin settings (stored by id, never matched by name); resources carry skill names from the same vocabulary. VROOM skill ids are assigned per request from the sorted union of names in play, so nothing persists ids and renaming values cannot corrupt data |
+| `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day, skills |
 | travel times | Computed by VROOM through OSRM; no matrix handling in the plugin |
 
 Issue selection for a run: all open issues of the project that have

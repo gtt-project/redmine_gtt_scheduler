@@ -18,7 +18,9 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
              'vroom_url' => 'http://vroom:3000',
              'default_service_minutes' => '30',
              'solver_timeout' => '60',
-             'request_geometry' => '1'
+             'request_geometry' => '1',
+             # Empty = skills matching off.
+             'skills_custom_field_id' => ''
            }
 
   project_module :gtt_scheduler do

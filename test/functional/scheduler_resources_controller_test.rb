@@ -91,6 +91,26 @@ class SchedulerResourcesControllerTest < Redmine::ControllerTest
     assert flash[:error].present?
   end
 
+  test 'create stores the selected skills' do
+    field = IssueCustomField.create!(
+      name: 'Required skills', field_format: 'list', multiple: true,
+      possible_values: %w[electric plumbing], is_for_all: true,
+      tracker_ids: Tracker.pluck(:id)
+    )
+    Setting.plugin_redmine_gtt_scheduler =
+      Setting.plugin_redmine_gtt_scheduler.merge('skills_custom_field_id' => field.id.to_s)
+
+    post :create, params: {
+      project_id: @project.identifier,
+      scheduler_resource: {
+        name: 'Crew E', start_lng: '139.70', start_lat: '35.68',
+        work_starts: '08:00', work_ends: '17:00', skills: ['', 'electric']
+      }
+    }
+
+    assert_equal ['electric'], SchedulerResource.last.skills
+  end
+
   test 'single-digit working hours are accepted' do
     assert_difference 'SchedulerResource.count' do
       post :create, params: {
