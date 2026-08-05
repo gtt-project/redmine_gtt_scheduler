@@ -9,6 +9,7 @@ ja:
   label_scheduler_unassigned: ソルバーが割り当てなかったチケット
   label_scheduler_excluded: 対象外のチケット
   label_scheduler_travel: 移動
+  label_scheduler_travel_minutes: "%{count}分"
   label_scheduler_status_draft: 下書き
   label_scheduler_status_solving: 計算中
   label_scheduler_status_proposed: 提案
@@ -45,7 +46,8 @@ ja:
   text_scheduler_unassigned_no_room_in_plan: 他の作業と併せて収まりませんでした
   text_scheduler_unassigned_unknown: 理由を推定できませんでした
   text_scheduler_run_planned_with: "計画に使用したリソース: %{resources}"
-  text_scheduler_run_scope_hint: このプロジェクトの位置情報を持つ未完了チケットすべてを、有効なリソース全員で計画します。
+  text_scheduler_run_scope_hint: このプロジェクトの位置情報を持つ未完了チケットすべてを、上で選択したリソースで計画します。
+  text_scheduler_times_not_stored: "%{ids} の開始時刻・期日時刻は保存されませんでした。トラッカーが redmine_issue_datetime プラグインの設定で有効になっていません。"
   text_scheduler_run_in_progress: 計算中です。しばらくしてからページを再読み込みしてください。
   text_scheduler_apply_confirm: 対象チケットの日付・時刻・担当者を更新します。続行しますか？
   text_scheduler_not_proposed: 適用できるのは「提案」状態の実行のみです。

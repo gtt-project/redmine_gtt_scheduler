@@ -15,7 +15,10 @@ class SchedulerRunResourcesTest < ActiveSupport::TestCase
     @day = Date.new(2026, 8, 3)
     enable_scheduler(@project)
     factory = RGeo::Geographic.spherical_factory(srid: 4326)
-    Issue.where(project_id: @project.id).update_all(geom: nil)
+    # Dates cleared too: fixture dates are relative to today and would push
+    # the issue outside the fixed planning day at some point (#22).
+    Issue.where(project_id: @project.id)
+         .update_all(geom: nil, start_date: nil, due_date: nil)
     Issue.find(1).update_columns(geom: factory.point(139.7, 35.68).to_s)
   end
 

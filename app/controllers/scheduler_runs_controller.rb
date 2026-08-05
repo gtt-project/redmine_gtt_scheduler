@@ -9,7 +9,13 @@ class SchedulerRunsController < ApplicationController
   before_action :find_run, only: [:show, :apply, :discard]
 
   def index
-    @runs = @project.scheduler_runs.sorted.limit(100)
+    scope = @project.scheduler_runs.sorted
+    @run_count = scope.count
+    @run_pages = Paginator.new(@run_count, per_page_option, params['page'])
+    @runs = scope.limit(@run_pages.per_page).offset(@run_pages.offset).to_a
+    # One grouped query instead of a COUNT per row.
+    @assignment_counts = SchedulerAssignment.where(scheduler_run_id: @runs.map(&:id))
+                                            .group(:scheduler_run_id).count
   end
 
   def show
@@ -66,6 +72,7 @@ class SchedulerRunsController < ApplicationController
     result = RedmineGttScheduler::Scheduler::SolutionApplier.call(@run, User.current)
     if result.success?
       flash[:notice] = l(:notice_scheduler_run_applied)
+      flash[:warning] = result.warning if result.warning
     else
       flash[:error] = result.message
     end

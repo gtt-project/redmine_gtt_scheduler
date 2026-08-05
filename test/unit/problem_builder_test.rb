@@ -15,7 +15,12 @@ class ProblemBuilderTest < ActiveSupport::TestCase
     @day = Date.new(2026, 8, 3)
     enable_scheduler(@project)
     @factory = RGeo::Geographic.spherical_factory(srid: 4326)
-    Issue.where(project_id: @project.id).update_all(geom: nil)
+    # Fixture issues carry start/due dates relative to *today* (ERB in the
+    # fixtures), while the planning day here is fixed. Clear both so the
+    # suite does not start failing by itself once today passes the planning
+    # day; tests that need dates set their own explicitly.
+    Issue.where(project_id: @project.id)
+         .update_all(geom: nil, start_date: nil, due_date: nil)
   end
 
   def place(issue, lng, lat)

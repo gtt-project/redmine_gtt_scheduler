@@ -9,6 +9,7 @@ en:
   label_scheduler_unassigned: Not assigned by the solver
   label_scheduler_excluded: Not part of the problem
   label_scheduler_travel: Travel
+  label_scheduler_travel_minutes: "%{count} min"
   label_scheduler_status_draft: Draft
   label_scheduler_status_solving: Solving
   label_scheduler_status_proposed: Proposed
@@ -45,7 +46,8 @@ en:
   text_scheduler_unassigned_no_room_in_plan: it did not fit alongside the other tasks
   text_scheduler_unassigned_unknown: no explanation could be derived
   text_scheduler_run_planned_with: "Planned with: %{resources}"
-  text_scheduler_run_scope_hint: All open issues of this project with a location are planned, using all active resources.
+  text_scheduler_run_scope_hint: All open issues of this project with a location are planned, using the resources selected above.
+  text_scheduler_times_not_stored: "Start and due times were not stored for %{ids}: their tracker is not enabled in the redmine_issue_datetime plugin settings."
   text_scheduler_run_in_progress: The solver is running. Reload this page in a moment.
   text_scheduler_apply_confirm: This updates dates, times, and assignees of the scheduled issues. Continue?
   text_scheduler_not_proposed: Only proposed runs can be applied.

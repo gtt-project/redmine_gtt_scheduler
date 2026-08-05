@@ -96,8 +96,9 @@ module RedmineGttScheduler
             'resource' => resource&.name,
             'resource_id' => resource&.id,
             'color' => color,
-            # False means the line is straight legs between stops, which the UI
-            # says out loud rather than passing off as a road path.
+            # road_path false means the line is only straight legs between
+            # stops; the UI states this explicitly instead of presenting the
+            # line as a road path.
             'road_path' => road,
             'straight_legs' => !road
           }

@@ -26,12 +26,13 @@
           <td><%= format_date(run.scheduled_on) %></td>
           <td><%= scheduler_run_status(run) %></td>
           <td><%= run.user %></td>
-          <td><%= run.scheduler_assignments.count %></td>
+          <td><%= @assignment_counts[run.id] || 0 %></td>
           <td><%= format_time(run.created_at) %></td>
         </tr>
       <% end %>
     </tbody>
   </table>
+  <span class="pagination"><%= pagination_links_full @run_pages, @run_count %></span>
 <% else %>
   <p class="nodata"><%= l(:label_no_data) %></p>
 <% end %>

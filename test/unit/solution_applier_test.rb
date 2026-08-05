@@ -68,6 +68,30 @@ class SolutionApplierTest < ActiveSupport::TestCase
     assert_equal SchedulerRun::PROPOSED, @run.reload.status
   end
 
+  test 'a normal apply carries no warning' do
+    result = Applier.call(@run, @user)
+
+    assert result.success?
+    assert_nil result.warning
+  end
+
+  # redmine_issue_datetime ignores the time setters for trackers it is not
+  # enabled for; the dates and the assignee are still written, but the times
+  # are lost. The dispatcher must be told.
+  test 'applying warns when a tracker cannot store times' do
+    Setting.plugin_redmine_issue_datetime = {
+      'tracker_ids' => [], 'time_step' => '15', 'reference_zone' => 'UTC'
+    }
+
+    result = Applier.call(@run, @user)
+
+    assert result.success?, result.message
+    assert_includes result.warning, "##{@issue.id}"
+    @issue.reload
+    assert_equal @day, @issue.start_date
+    assert_nil @issue.issue_datetime, 'times cannot be stored for a disabled tracker'
+  end
+
   test 'a resource without a linked user leaves the assignee untouched' do
     @issue.update_columns(assigned_to_id: User.find(2).id)
     @resource.update!(user: nil)

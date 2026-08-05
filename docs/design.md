@@ -1,6 +1,6 @@
 # redmine_gtt_scheduler v2: Design Document
 
-Status: Draft for review
+Status: As built (kept in step with the implementation)
 Scope: VRP-based schedule optimization for location-based Redmine issues
 
 ## 1. Background
@@ -64,18 +64,24 @@ Backends:
 ## 3. Data model (plugin-owned tables)
 
 ```ruby
-# Workers, crews, or vehicles that can be assigned work
+# Workers, crews, or vehicles that can be assigned work.
+#
+# Locations are plain lng/lat floats rather than PostGIS point columns:
+# the solver only ever needs a coordinate pair, and plain floats keep the
+# table independent of the GIS adapter. Working hours are HH:MM strings
+# (validated, compared as minutes since midnight); a full working-hour
+# pattern and skills/capacity are planned as issue #4.
 create_table :scheduler_resources do |t|
   t.references :project, null: false
-  t.string  :name, null: false
   t.references :user                # optional link to a Redmine user
-  t.datetime :available_from        # working hours (time of day pattern TBD)
-  t.datetime :available_to
-  t.st_point :start_location, srid: 4326   # via redmine_gtt / rgeo
-  t.st_point :end_location, srid: 4326
-  t.integer :capacity               # optional, single dimension in v1
-  t.string  :skills, array-ish serialization  # optional
-  t.boolean :active, default: true
+  t.string  :name, null: false
+  t.float   :start_lng, null: false
+  t.float   :start_lat, null: false
+  t.float   :end_lng                # end defaults to start when empty
+  t.float   :end_lat
+  t.string  :work_starts, null: false, default: '08:00'
+  t.string  :work_ends, null: false, default: '17:00'
+  t.boolean :active, null: false, default: true
 end
 
 # One optimization run: scope, status, raw request/response, result
@@ -100,23 +106,38 @@ create_table :scheduler_assignments do |t|
   t.datetime :ends_at, null: false
   t.integer  :travel_seconds             # from previous stop
 end
+
+# Which resources a run was asked to plan with. A run with no rows plans
+# with every active resource (also the behaviour of runs created before
+# this table existed).
+create_table :scheduler_run_resources do |t|
+  t.references :scheduler_run, null: false
+  t.references :scheduler_resource, null: false
+end
 ```
+
+The run's `excluded_issues` column stores which issues never became part
+of the problem and why (no usable geometry, window outside the planning
+day). Route geometry is not stored separately: it is read back out of
+the stored solver response when the map needs it.
 
 ## 4. Mapping Redmine to VROOM
 
 | VROOM concept | Source in Redmine |
 | --- | --- |
-| `job.location` | Issue geometry from redmine_gtt (point; for lines/polygons: centroid in v1) |
-| `job.time_windows` | `issue_datetimes.starts_at/ends_at`; open window when absent |
+| `job.location` | Issue geometry from redmine_gtt, reduced to one point: a Point directly, otherwise the centroid, otherwise a middle vertex (centroid is not available for every type on the geographic factory, notably LineString) |
+| `job.time_windows` | `issue_datetimes.starts_at/ends_at`, falling back to the plain dates, clamped to the planning day |
 | `job.service` | `issues.estimated_hours` (converted to seconds; configurable default when empty) |
-| `job.priority` | Issue priority position (no name matching) |
-| `job.skills` | Optional mapping from a configured custom field (explicit setting: field id, not field name) |
-| `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window`, skills, capacity |
+| `job.priority` | Issue priority position, scaled to VROOM's 0..100 (no name matching) |
+| `job.skills` | Planned (issue #4) |
+| `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day |
 | travel times | Computed by VROOM through OSRM; no matrix handling in the plugin |
 
-Issue selection for a run: a project plus a standard Redmine issue query
-(saved query id or ad hoc filters), restricted to issues that have
-geometry and are open. Issues without geometry are listed as excluded,
+Issue selection for a run: all open issues of the project that have
+geometry, planned with the run's selected resources (all active ones
+when no selection was made). Filtering by a saved issue query is a
+possible later refinement. Issues without usable geometry or whose
+window misses the planning day are listed as excluded with a reason,
 never silently dropped.
 
 v1 models **jobs only**. Shipments (pickup and delivery pairs) and breaks
@@ -125,13 +146,20 @@ are explicitly out of scope for v1 and tracked as later phases.
 ## 5. Workflow: propose, then apply
 
 1. **Compose**: dispatcher opens the Scheduler view in a project, picks
-   the day, the issue scope, and the resources to plan with.
+   the day and the resources to plan with.
 2. **Solve**: the run is created (`solving`) and the adapter is called in
    a background job. Request and response payloads are stored on the run.
-3. **Review**: the run becomes `proposed`. The UI shows routes on the map
-   (redmine_gtt / OpenLayers) and an hour-level timeline per resource
-   (rendered by redmine_canvas_gantt from the assignment data). Unassigned
-   jobs are listed with the reason VROOM gave.
+   The run always ends in a terminal status: any solver or unexpected
+   error marks it `failed` with a message rather than leaving it stuck.
+3. **Review**: the run becomes `proposed`. The UI shows each resource's
+   route on the map (redmine_gtt / OpenLayers) in its own colour with a
+   per-resource toggle, following the real road path when the solver
+   returned geometry, and an hour-level timeline per resource (plain
+   HTML/CSS rendered by the plugin itself). Unassigned jobs are listed
+   with a locally derived reason: VROOM does not report why a job was
+   left out, so the plugin re-examines the problem (window outside every
+   shift, service longer than any shift, or simply no room) and the UI
+   labels the explanations as derived.
 4. **Apply**: on confirmation, for each assignment the plugin writes
    `starts_at` / `ends_at` through redmine_issue_datetime and sets
    `assigned_to` when the resource is linked to a user. All changes are
@@ -144,10 +172,15 @@ its stored request payload.
 ## 6. UI
 
 - Project menu entry "Scheduler" (module permission based).
-- Run list, run detail (map + timeline + assignment table), resource
-  administration under project settings.
-- Map rendering reuses redmine_gtt's OpenLayers setup; the route geometry
-  returned by VROOM (`g` flag via OSRM) is displayed per resource.
+- Run list (paginated), run detail (map + timeline + assignment table),
+  resource administration.
+- Map rendering reuses redmine_gtt's OpenLayers setup via its published
+  `gtt:map:ready` event: the plugin wraps the vector layer's style
+  function to colour each route per resource and to build the toggle
+  legend, without forking the map. The route geometry returned by VROOM
+  (`g` option, encoded polyline at precision 5) is decoded and drawn
+  when plausible; otherwise the route falls back to straight legs
+  between stops, and the UI says which of the two it is showing.
 
 ## 7. Permissions
 
@@ -171,30 +204,37 @@ Docker Compose stack:
 
 ## 9. Dependencies
 
-- Redmine 6.x / RedMica current line
-- redmine_gtt (geometry)
+- Redmine 6.0 or later
+- redmine_gtt (geometry, map rendering)
 - redmine_issue_datetime (time storage; hard dependency)
-- redmine_canvas_gantt (timeline rendering; soft dependency, the run
-  detail degrades to the table without it)
+
+The timeline is rendered by the plugin itself with plain HTML/CSS, so
+there is no further UI dependency.
 
 ## 10. Phasing
 
-1. **Phase 1**: data model, VroomExpress adapter, jobs-only solve,
-   apply step, plain table UI. No map, no timeline.
-2. **Phase 2**: map view of routes, canvas_gantt timeline, unassigned
-   job diagnostics.
-3. **Phase 3**: skills and capacity, resource working-hour patterns,
-   multi-day planning.
-4. **Phase 4**: shipments (pickup/delivery), breaks, alternative solver
-   backends (pgvroom, pg_scheduleserv).
+1. **Phase 1** (done): data model, VroomExpress adapter, jobs-only
+   solve, apply step, plain table UI.
+2. **Phase 2** (done): map view of routes with per-resource colours and
+   toggles, real road geometry, hour-level timeline, unassigned job
+   diagnostics, per-run resource selection.
+3. **Phase 3** (issue #4): skills and capacity, resource working-hour
+   patterns, multi-day planning.
+4. **Phase 4** (issue #5): shipments (pickup/delivery), breaks,
+   alternative solver backends (pgvroom, pg_scheduleserv).
 
 ## 11. Testing
 
-- Adapter tests against recorded VROOM request/response fixtures.
-- One integration test path against a real vroom-express container
-  (compose file in `test/`), excluded from the default suite.
+- Adapter tests with an injected transport stub, asserting both the
+  request built from a problem and the solution parsed from a response.
+- The polyline decoder is tested against a route captured from a live
+  VROOM + OSRM stack, which is what pinned the precision at 5: a
+  hand-written fixture would only prove the decoder agrees with itself.
 - Model tests for the apply step (journal entries, permission failures,
-  partial apply blocking).
+  the tracker-cannot-store-times warning).
+- CI matrix: Redmine 6.1 (Ruby 3.4) and 7.0 (Ruby 3.4 and 4.0) on
+  PostGIS, with redmine_gtt and redmine_issue_datetime checked out as
+  dependencies, plus a `zeitwerk:check` eager-loading gate.
 
 ## 12. Credits
 
