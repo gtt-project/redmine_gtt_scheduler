@@ -1,3 +1,9 @@
+/* Day heading inside a resource section of a multi-day run. */
+.scheduler-day {
+  margin: 0.8em 0 0.2em;
+  color: #444;
+}
+
 /* Per-resource timeline. Positions come from the helper as percentages, so this
    only needs to lay out the track and style the bars. */
 .scheduler-timeline {

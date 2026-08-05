@@ -16,7 +16,8 @@
 <h2><%= l(:label_scheduler_run) %> #<%= @run.id %></h2>
 
 <p>
-  <strong><%= l(:field_scheduled_on) %>:</strong> <%= format_date(@run.scheduled_on) %>
+  <strong><%= l(:field_scheduled_on) %>:</strong>
+  <%= format_date(@run.scheduled_on) %><% if @run.multi_day? %> - <%= format_date(@run.scheduled_until) %><% end %>
   &nbsp; <%= scheduler_run_status(@run) %>
 </p>
 
@@ -50,30 +51,39 @@
     <% if resource&.user %><span class="info">(<%= resource.user %>)</span><% end %>
   </h3>
 
-  <%= render partial: 'timeline', locals: {assignments: assignments, color: color} %>
+  <%# One timeline and table per day: sequences restart on each day of a
+      multi-day run, so mixing days in one table would repeat numbers. %>
+  <% assignments.group_by { |a| a.starts_at.in_time_zone(RedmineGttScheduler.reference_zone).to_date }
+                .sort.each do |day, day_assignments| %>
+    <% if @run.multi_day? %>
+      <h4 class="scheduler-day"><%= format_date(day) %></h4>
+    <% end %>
 
-  <table class="list">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th><%= l(:field_issue) %></th>
-        <th><%= l(:field_start_time) %></th>
-        <th><%= l(:field_due_time) %></th>
-        <th><%= l(:label_scheduler_travel) %></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% assignments.each do |assignment| %>
+    <%= render partial: 'timeline', locals: {assignments: day_assignments, color: color} %>
+
+    <table class="list">
+      <thead>
         <tr>
-          <td><%= assignment.sequence %></td>
-          <td><%= link_to_issue(assignment.issue) if assignment.issue %></td>
-          <td><%= scheduler_time(assignment.starts_at) %></td>
-          <td><%= scheduler_time(assignment.ends_at) %></td>
-          <td><%= scheduler_travel(assignment.travel_seconds) %></td>
+          <th>#</th>
+          <th><%= l(:field_issue) %></th>
+          <th><%= l(:field_start_time) %></th>
+          <th><%= l(:field_due_time) %></th>
+          <th><%= l(:label_scheduler_travel) %></th>
         </tr>
-      <% end %>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <% day_assignments.sort_by(&:sequence).each do |assignment| %>
+          <tr>
+            <td><%= assignment.sequence %></td>
+            <td><%= link_to_issue(assignment.issue) if assignment.issue %></td>
+            <td><%= scheduler_time(assignment.starts_at) %></td>
+            <td><%= scheduler_time(assignment.ends_at) %></td>
+            <td><%= scheduler_travel(assignment.travel_seconds) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
 <% end %>
 
 <% if @unassigned_issues.any? %>

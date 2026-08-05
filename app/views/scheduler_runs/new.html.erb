@@ -4,6 +4,10 @@
   <%= error_messages_for @run %>
   <div class="box tabular">
     <p><%= f.date_field :scheduled_on, required: true, label: :field_scheduled_on %></p>
+    <p>
+      <%= f.date_field :scheduled_until, label: :field_scheduled_until %>
+      <em class="info"><%= l(:text_scheduler_until_hint, days: SchedulerRun::MAX_PLANNING_DAYS) %></em>
+    </p>
 
     <% if @resources.any? %>
       <p>
