@@ -28,9 +28,15 @@ module RedmineGttScheduler
         return {} if ids.empty?
 
         problem = ProblemBuilder.new(@run).build
-        jobs = problem.jobs.index_by(&:id)
+        # Shipment stops are diagnosable like jobs: they carry their own
+        # window and service, plus the pair's skills and amount.
+        stops = problem.jobs.index_by(&:id)
+        problem.shipments.each do |shipment|
+          stops[shipment.pickup.id] = shipment.pickup
+          stops[shipment.delivery.id] = shipment.delivery
+        end
         ids.each_with_object({}) do |id, out|
-          out[id] = reason_for(jobs[id], problem.vehicles)
+          out[id] = reason_for(stops[id], problem.vehicles)
         end
       end
 

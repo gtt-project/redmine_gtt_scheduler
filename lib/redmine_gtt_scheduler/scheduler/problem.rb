@@ -17,17 +17,26 @@ module RedmineGttScheduler
       Vehicle = Struct.new(:id, :start, :end, :time_window, :skills, :capacity,
                            :breaks, keyword_init: true)
 
-      attr_reader :jobs, :vehicles, :excluded, :vehicle_index
+      # A pickup/delivery pair the same vehicle must serve in order.
+      # pickup and delivery are Job structs; amount is the moved load
+      # (same single dimension as delivery/capacity), skills and priority
+      # apply to the pair as a whole.
+      Shipment = Struct.new(:pickup, :delivery, :amount, :skills, :priority,
+                            keyword_init: true)
+
+      attr_reader :jobs, :vehicles, :excluded, :vehicle_index, :shipments
 
       # vehicle_index maps a solver vehicle id to [resource id, Date].
       # Multi-day problems have one vehicle per resource per working day
       # with synthetic ids; single-day problems keep vehicle id ==
       # resource id and an empty index.
-      def initialize(jobs: [], vehicles: [], excluded: {}, vehicle_index: {})
+      def initialize(jobs: [], vehicles: [], excluded: {}, vehicle_index: {},
+                     shipments: [])
         @jobs = jobs
         @vehicles = vehicles
         @excluded = excluded
         @vehicle_index = vehicle_index
+        @shipments = shipments
       end
 
       def resource_id_for(vehicle_id)
@@ -36,7 +45,7 @@ module RedmineGttScheduler
       end
 
       def solvable?
-        jobs.any? && vehicles.any?
+        (jobs.any? || shipments.any?) && vehicles.any?
       end
     end
   end

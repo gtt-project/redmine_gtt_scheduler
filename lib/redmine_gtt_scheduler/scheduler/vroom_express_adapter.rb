@@ -54,13 +54,38 @@ module RedmineGttScheduler
             end
           end
         }
+        if problem.shipments.any?
+          request['shipments'] = problem.shipments.map do |shipment|
+            {
+              'pickup' => shipment_stop(shipment.pickup),
+              'delivery' => shipment_stop(shipment.delivery),
+              'priority' => shipment.priority
+            }.tap do |s|
+              s['amount'] = shipment.amount if shipment.amount.present?
+              s['skills'] = shipment.skills if shipment.skills.present?
+            end
+          end
+        end
         # `g` asks VROOM for the road geometry of each route. It costs response
         # size and a little solver time, hence the setting.
         request['options'] = {'g' => true} if RedmineGttScheduler.request_geometry?
         request
       end
 
+      # Response step types that are stops at an issue. Everything else
+      # (start, end, break) is not an assignment.
+      STOP_KINDS = {'job' => nil, 'pickup' => 'pickup', 'delivery' => 'delivery'}.freeze
+
       private
+
+      def shipment_stop(stop)
+        {
+          'id' => stop.id,
+          'location' => stop.location,
+          'service' => stop.service,
+          'time_windows' => [stop.time_window]
+        }
+      end
 
       def post(request)
         return @transport.call(request.to_json) if @transport
@@ -99,7 +124,7 @@ module RedmineGttScheduler
           route.fetch('steps', []).each do |step|
             travel = step['duration'].to_i - previous_duration
             previous_duration = step['duration'].to_i
-            next unless step['type'] == 'job'
+            next unless STOP_KINDS.key?(step['type'])
 
             sequence += 1
             service_start = step['arrival'].to_i + step['waiting_time'].to_i
@@ -111,7 +136,8 @@ module RedmineGttScheduler
               sequence: sequence,
               starts_at: Time.at(service_start).utc,
               ends_at: Time.at(service_start + step['service'].to_i).utc,
-              travel_seconds: travel
+              travel_seconds: travel,
+              kind: STOP_KINDS[step['type']]
             )
           end
         end

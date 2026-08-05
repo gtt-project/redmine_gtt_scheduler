@@ -21,12 +21,14 @@ module RedmineGttScheduler
         excluded = {}
         @skill_ids = skill_id_map
         @capacity_active = capacity_active?
+        jobs, shipments = extract_shipments(build_jobs(excluded), excluded)
         vehicles, vehicle_index = build_vehicles
         Problem.new(
-          jobs: build_jobs(excluded),
+          jobs: jobs,
           vehicles: vehicles,
           excluded: excluded,
-          vehicle_index: vehicle_index
+          vehicle_index: vehicle_index,
+          shipments: shipments
         )
       end
 
@@ -93,6 +95,78 @@ module RedmineGttScheduler
           priority: priority_of(issue),
           skills: skill_ids_of(issue_skill_names(issue)),
           delivery: (@capacity_active ? [load_of(issue)] : nil)
+        )
+      end
+
+      # Pairs jobs joined by the configured issue relation into shipments:
+      # the relation's "from" issue is the pickup, its "to" issue the
+      # delivery. Both leave the plain job list. Returns [jobs, shipments].
+      def extract_shipments(jobs, excluded)
+        type = RedmineGttScheduler.shipment_relation_type
+        return [jobs, []] if type.nil? || jobs.empty?
+
+        jobs_by_id = jobs.index_by(&:id)
+        relations = shipment_relations(type, jobs_by_id.keys)
+        return [jobs, []] if relations.empty?
+
+        # An issue tied into more than one relation of the type cannot be
+        # paired deterministically; exclude it rather than pick a relation
+        # at random.
+        counts = relations.flat_map { |r| [r.issue_from_id, r.issue_to_id] }.tally
+        ambiguous = counts.select { |id, n| n > 1 }.keys
+
+        shipments = []
+        removed = Set.new
+        relations.each do |relation|
+          pair = [relation.issue_from_id, relation.issue_to_id]
+          if pair.intersect?(ambiguous)
+            reason = 'ambiguous_shipment'
+          elsif pair.all? { |id| jobs_by_id.key?(id) }
+            shipments << build_shipment(jobs_by_id[relation.issue_from_id],
+                                        jobs_by_id[relation.issue_to_id])
+            removed.merge(pair)
+            next
+          else
+            # The partner is not part of the problem (closed, without
+            # geometry, outside the range, or in another project).
+            # Planning half a shipment would be silently wrong, so the
+            # present half is excluded instead.
+            reason = 'shipment_partner_excluded'
+          end
+
+          pair.each do |id|
+            next unless jobs_by_id.key?(id)
+
+            excluded[id] = reason
+            removed << id
+          end
+        end
+
+        [jobs.reject { |job| removed.include?(job.id) }, shipments]
+      end
+
+      def shipment_relations(type, ids)
+        IssueRelation.where(relation_type: type)
+                     .where('issue_from_id IN (:ids) OR issue_to_id IN (:ids)', ids: ids)
+                     .to_a
+      end
+
+      # The pair travels together, so skills apply to the pair (the union
+      # of both stops) and the moved amount is the delivery issue's load.
+      # The stops keep their own windows, services, and (for the
+      # unassigned diagnostics) the amount; the adapter emits the amount
+      # only on the shipment itself.
+      def build_shipment(pickup, delivery)
+        skills = ((pickup.skills || []) | (delivery.skills || [])).sort
+        skills = nil if skills.empty?
+        amount = @capacity_active ? delivery.delivery : nil
+        [pickup, delivery].each do |stop|
+          stop.skills = skills
+          stop.delivery = amount
+        end
+        Problem::Shipment.new(
+          pickup: pickup, delivery: delivery, amount: amount, skills: skills,
+          priority: [pickup.priority.to_i, delivery.priority.to_i].max
         )
       end
 

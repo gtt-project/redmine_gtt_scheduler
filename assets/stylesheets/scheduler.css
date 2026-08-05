@@ -1,3 +1,13 @@
+/* Small badge marking a stop as the pickup or delivery half of a shipment. */
+.scheduler-kind {
+  font-size: 0.85em;
+  padding: 0 0.4em;
+  border-radius: 3px;
+  background: #eee;
+  color: #333;
+  white-space: nowrap;
+}
+
 /* Day heading inside a resource section of a multi-day run. */
 .scheduler-day {
   margin: 0.8em 0 0.2em;

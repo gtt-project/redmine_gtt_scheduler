@@ -2,9 +2,11 @@ module RedmineGttScheduler
   module Scheduler
     # Backend-independent result of one optimization run.
     class Solution
+      # kind is 'pickup' or 'delivery' for a stop that is half of a
+      # shipment, nil for a plain job stop.
       Assignment = Struct.new(
         :issue_id, :resource_id, :sequence,
-        :starts_at, :ends_at, :travel_seconds,
+        :starts_at, :ends_at, :travel_seconds, :kind,
         keyword_init: true
       )
 

@@ -52,7 +52,8 @@ module RedmineGttScheduler
               sequence: assignment.sequence,
               starts_at: assignment.starts_at,
               ends_at: assignment.ends_at,
-              travel_seconds: assignment.travel_seconds
+              travel_seconds: assignment.travel_seconds,
+              kind: assignment.kind
             )
           end
           @run.update!(
