@@ -144,6 +144,7 @@ the stored solver response when the map needs it.
 | `job.delivery` | An integer issue custom field picked in the plugin settings (single load dimension). VROOM requires every job and vehicle to carry the dimension once any does (verified against a live solver), so when active, issues without a value get load 0 and resources without a capacity get the total load, which no route can exceed |
 | `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day, skills, capacity |
 | `vehicle.breaks` | The resource's optional daily break (window + duration), anchored on each working day |
+| `shipment` | Two plannable issues joined by the configured relation type: the "from" issue is the pickup, the "to" issue the delivery. Skills are the pair's union, the moved amount is the delivery issue's load, priority the higher of the two. An issue in more than one such relation, or whose partner is not part of the problem, is excluded with a reason rather than planned wrongly |
 | travel times | Computed by VROOM through OSRM; no matrix handling in the plugin |
 
 Issue selection for a run: all open issues of the project that have
