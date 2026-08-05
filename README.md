@@ -17,8 +17,8 @@ per-resource route colours and toggles on the run map (with real road
 geometry when the solver is asked for it), an hour-level timeline, and
 locally derived diagnostics for unassigned issues, skills matching
 (an issue requiring skills is only assigned to a resource that has all
-of them), and capacity limits (each issue's load counts against the
-resource's capacity). Working-hour patterns and multi-day planning
+of them), capacity limits (each issue's load counts against the
+resource's capacity), and per-resource working days. Multi-day planning
 ([#4](https://github.com/gtt-project/redmine_gtt_scheduler/issues/4))
 and pickup/delivery
 ([#5](https://github.com/gtt-project/redmine_gtt_scheduler/issues/5))
