@@ -54,12 +54,29 @@ class Scheduler::Adapter
 end
 ```
 
+Backends register themselves in a small registry and are selected in
+the plugin settings:
+
+```ruby
+# In this plugin, or in another plugin's init.rb:
+RedmineGttScheduler::Scheduler.register_adapter('my_solver', MySolverAdapter)
+```
+
+A backend implements `solve(problem)` and returns a
+`Scheduler::Solution`; both are plain Ruby objects, independent of any
+backend, so a backend never needs to know about Redmine models. An
+unknown configured backend fails the run with a clear message instead
+of crashing the job.
+
 Backends:
 
-- `VroomExpressAdapter` (default): builds the VROOM JSON request,
-  POSTs to vroom-express, parses the solution.
+- `VroomExpressAdapter` (default, registered as `vroom_express`):
+  builds the VROOM JSON request, POSTs to vroom-express, parses the
+  solution.
 - Future candidates behind the same interface: pgvroom (if it matures to
-  a released, packaged extension), a revived pg_scheduleserv.
+  a released, packaged extension), a revived pg_scheduleserv. Neither
+  has an active release to build against today, so they remain
+  documented candidates only.
 
 ## 3. Data model (plugin-owned tables)
 
