@@ -2,10 +2,13 @@ module RedmineGttScheduler
   module Scheduler
     # Backend-independent description of one optimization problem.
     # Locations are [lon, lat]; time windows are [open, close] in epoch
-    # seconds; service durations are seconds.
+    # seconds; service durations are seconds. skills are integer ids
+    # assigned per problem (see ProblemBuilder#skill_id_map): a job may
+    # only be served by a vehicle whose skills cover the job's.
     class Problem
-      Job = Struct.new(:id, :location, :service, :time_window, :priority, keyword_init: true)
-      Vehicle = Struct.new(:id, :start, :end, :time_window, keyword_init: true)
+      Job = Struct.new(:id, :location, :service, :time_window, :priority, :skills,
+                       keyword_init: true)
+      Vehicle = Struct.new(:id, :start, :end, :time_window, :skills, keyword_init: true)
 
       attr_reader :jobs, :vehicles, :excluded
 

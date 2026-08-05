@@ -1,6 +1,12 @@
 class SchedulerResource < ApplicationRecord
   TIME_OF_DAY = /\A([01]?\d|2[0-3]):([0-5]\d)\z/
 
+  # Skill names this resource offers, from the vocabulary of the custom
+  # field configured in the plugin settings. Names, not ids: solver ids
+  # are assigned per request (see ProblemBuilder), so admins can rename
+  # or reorder the custom field values freely.
+  serialize :skills, coder: JSON, type: Array
+
   belongs_to :project
   belongs_to :user, optional: true
   has_many :scheduler_assignments, dependent: :restrict_with_error
@@ -13,6 +19,12 @@ class SchedulerResource < ApplicationRecord
 
   scope :active, -> { where(active: true) }
   scope :sorted, -> { order(:name) }
+
+  # The form submits a hidden blank entry so an empty selection clears
+  # the list; strip it and any accidental non-strings here.
+  def skills=(value)
+    super(Array(value).map(&:to_s).reject(&:blank?))
+  end
 
   # [lon, lat] pairs for the solver; the end location defaults to the
   # start location when not set.

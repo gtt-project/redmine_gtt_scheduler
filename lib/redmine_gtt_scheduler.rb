@@ -44,6 +44,18 @@ module RedmineGttScheduler
     seconds.positive? ? seconds : 60
   end
 
+  # The issue custom field whose possible values are the skill
+  # vocabulary, or nil when the skills feature is switched off. Only
+  # list-format fields qualify; the check guards against a field whose
+  # format was changed after it was selected.
+  def self.skills_custom_field
+    id = settings['skills_custom_field_id'].to_i
+    return nil unless id.positive?
+
+    field = IssueCustomField.find_by(id: id)
+    field if field&.field_format == 'list'
+  end
+
   # All schedule times are anchored in the same reference zone that
   # redmine_issue_datetime uses for its date mirror. That plugin is a hard
   # dependency, so say so clearly instead of raising NameError deep in a
