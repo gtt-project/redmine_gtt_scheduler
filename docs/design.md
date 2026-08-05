@@ -131,7 +131,8 @@ the stored solver response when the map needs it.
 | `job.service` | `issues.estimated_hours` (converted to seconds; configurable default when empty) |
 | `job.priority` | Issue priority position, scaled to VROOM's 0..100 (no name matching) |
 | `job.skills` | A list-format issue custom field picked in the plugin settings (stored by id, never matched by name); resources carry skill names from the same vocabulary. VROOM skill ids are assigned per request from the sorted union of names in play, so nothing persists ids and renaming values cannot corrupt data |
-| `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day, skills |
+| `job.delivery` | An integer issue custom field picked in the plugin settings (single load dimension). VROOM requires every job and vehicle to carry the dimension once any does (verified against a live solver), so when active, issues without a value get load 0 and resources without a capacity get the total load, which no route can exceed |
+| `vehicle` | `scheduler_resources` row: start/end location, working hours as `time_window` on the planning day, skills, capacity |
 | travel times | Computed by VROOM through OSRM; no matrix handling in the plugin |
 
 Issue selection for a run: all open issues of the project that have
