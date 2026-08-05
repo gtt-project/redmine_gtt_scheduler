@@ -126,7 +126,8 @@ module RedmineGttScheduler
       end
 
       def build_vehicles
-        resources.map do |resource|
+        resources.select { |resource| resource.works_on?(@run.scheduled_on) }
+                 .map do |resource|
           Problem::Vehicle.new(
             id: resource.id,
             start: resource.start_location,

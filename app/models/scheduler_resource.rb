@@ -7,6 +7,10 @@ class SchedulerResource < ApplicationRecord
   # or reorder the custom field values freely.
   serialize :skills, coder: JSON, type: Array
 
+  # ISO weekday numbers (1 = Monday .. 7 = Sunday) this resource works
+  # on. Empty means every day; see works_on?.
+  serialize :working_days, coder: JSON, type: Array
+
   belongs_to :project
   belongs_to :user, optional: true
   has_many :scheduler_assignments, dependent: :restrict_with_error
@@ -26,6 +30,18 @@ class SchedulerResource < ApplicationRecord
   # the list; strip it and any accidental non-strings here.
   def skills=(value)
     super(Array(value).map(&:to_s).reject(&:blank?))
+  end
+
+  def working_days=(value)
+    super(Array(value).map(&:to_i).select { |day| (1..7).cover?(day) }.uniq.sort)
+  end
+
+  # No selection means every day: that is what the behaviour was before
+  # working days existed, so rows from that time (stored as NULL) keep
+  # it, and it follows the plugin's convention that an empty selection
+  # means "no restriction" (compare the run's resource selection).
+  def works_on?(date)
+    working_days.empty? || working_days.include?(date.cwday)
   end
 
   # [lon, lat] pairs for the solver; the end location defaults to the

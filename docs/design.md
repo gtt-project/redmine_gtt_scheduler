@@ -69,9 +69,11 @@ Backends:
 # Locations are plain lng/lat floats rather than PostGIS point columns:
 # the solver only ever needs a coordinate pair, and plain floats keep the
 # table independent of the GIS adapter. Working hours are HH:MM strings
-# (validated, compared as minutes since midnight); a full working-hour
-# pattern and capacity are planned (issues #25 to #27). skills is a JSON
-# array of names from the configured custom field's vocabulary.
+# (validated, compared as minutes since midnight) and apply to every
+# working day; working_days is a JSON array of ISO weekdays, empty
+# meaning every day. A full per-weekday hour pattern remains future
+# work. skills is a JSON array of names from the configured custom
+# field's vocabulary; capacity is a single dimension, NULL = unlimited.
 create_table :scheduler_resources do |t|
   t.references :project, null: false
   t.references :user                # optional link to a Redmine user
