@@ -18,9 +18,14 @@ module RedmineGttScheduler
         COLORS[index % COLORS.size]
       end
 
-      # geometries: resource id => encoded polyline from the solver. When one is
-      # present and decodes plausibly, the route follows the actual roads;
-      # otherwise it falls back to straight legs between consecutive stops.
+      # geometries: resource id => encoded polylines from the solver, each
+      # entry a {'date' => iso-date-or-nil, 'geometry' => encoded} hash
+      # (see SchedulerRun#route_geometries_by_resource; a bare string is
+      # accepted for convenience). A multi-day run has one route per
+      # resource per day, so the lines are built per day: a day whose
+      # geometry is present and decodes plausibly follows the roads, any
+      # other day falls back to straight legs between its own stops,
+      # never joining stops of different days.
       def self.call(assignments, geometries: {})
         new(assignments, geometries: geometries).call
       end
@@ -28,6 +33,7 @@ module RedmineGttScheduler
       def initialize(assignments, geometries: {})
         @assignments = assignments
         @geometries = geometries || {}
+        @zone = RedmineGttScheduler.reference_zone
       end
 
       def call
@@ -35,27 +41,40 @@ module RedmineGttScheduler
         order = by_resource.keys.compact.sort
         features = []
         order.each_with_index do |resource_id, index|
-          stops = by_resource[resource_id].sort_by(&:sequence)
-          color = self.class.color_for(index)
+          features.concat(resource_features(resource_id, by_resource[resource_id],
+                                            self.class.color_for(index)))
+        end
+        {'type' => 'FeatureCollection', 'features' => features}
+      end
+
+      private
+
+      def resource_features(resource_id, assignments, color)
+        resource = assignments.first&.scheduler_resource
+        features = []
+        assignments.group_by { |a| day_of(a) }.sort_by { |day, _| day.to_s }.each do |day, day_stops|
           points = []
-          stops.each do |assignment|
+          day_stops.sort_by(&:sequence).each do |assignment|
             point = Geometry.point_of(assignment.issue&.geom)
             next if point.nil?
 
             points << point
             features << stop_feature(assignment, point, color)
           end
-          road = road_coordinates(resource_id, points)
+
+          road = road_coordinates(resource_id, day, points)
           if road
-            features << line_feature(stops.first&.scheduler_resource, road, color, road: true)
+            features << line_feature(resource, road, color, road: true)
           elsif points.size > 1
-            features << line_feature(stops.first&.scheduler_resource, points, color, road: false)
+            features << line_feature(resource, points, color, road: false)
           end
         end
-        {'type' => 'FeatureCollection', 'features' => features}
+        features
       end
 
-      private
+      def day_of(assignment)
+        assignment.starts_at&.in_time_zone(@zone)&.to_date
+      end
 
       def stop_feature(assignment, point, color)
         {
@@ -74,18 +93,32 @@ module RedmineGttScheduler
         }
       end
 
-      # Decoded road path for this resource, or nil when there is none to use.
-      # The plausibility check is the guard against an upstream precision change:
-      # decoding at the wrong precision divides every coordinate by ten, which
-      # would quietly draw the route in the wrong hemisphere rather than fail.
-      def road_coordinates(resource_id, stops)
-        encoded = @geometries[resource_id] || @geometries[resource_id.to_s]
+      # Decoded road path for this resource on this day, or nil when there
+      # is none to use. The plausibility check is the guard against an
+      # upstream precision change: decoding at the wrong precision divides
+      # every coordinate by ten, which would quietly draw the route in the
+      # wrong hemisphere rather than fail.
+      def road_coordinates(resource_id, day, stops)
+        encoded = encoded_geometry(resource_id, day)
         return nil if encoded.blank?
 
         decoded = Polyline.decode(encoded)
         return nil unless decoded.size > 1 && Polyline.plausible?(decoded, near: stops)
 
         decoded
+      end
+
+      # The stored entry for this day: matched by ISO date for multi-day
+      # runs; a single dateless entry (single-day runs, or a bare string
+      # passed directly) applies to whichever day there is.
+      def encoded_geometry(resource_id, day)
+        raw = @geometries[resource_id] || @geometries[resource_id.to_s]
+        entries = (raw.is_a?(Array) ? raw : [raw]).compact.map do |entry|
+          entry.is_a?(Hash) ? entry : {'date' => nil, 'geometry' => entry}
+        end
+        entry = entries.find { |e| e['date'] == day&.iso8601 } ||
+                (entries.first if entries.size == 1 && entries.first['date'].nil?)
+        entry && entry['geometry']
       end
 
       def line_feature(resource, points, color, road:)
