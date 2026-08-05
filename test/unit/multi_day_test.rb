@@ -40,6 +40,9 @@ class MultiDayTest < ActiveSupport::TestCase
 
     run.scheduled_until = DAY_ONE + SchedulerRun::MAX_PLANNING_DAYS
     assert_not run.valid?, 'a range longer than the cap must be rejected'
+    # The message must say what the actual limit is, not just "invalid".
+    assert_includes run.errors[:scheduled_until].join,
+                    SchedulerRun::MAX_PLANNING_DAYS.to_s
 
     run.scheduled_until = DAY_TWO
     assert run.valid?

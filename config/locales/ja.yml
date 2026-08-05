@@ -1,5 +1,8 @@
 ja:
   activerecord:
+    errors:
+      messages:
+        range_too_long: "は計画期間が%{count}日を超えないようにしてください"
     attributes:
       scheduler_run:
         scheduled_on: 計画日

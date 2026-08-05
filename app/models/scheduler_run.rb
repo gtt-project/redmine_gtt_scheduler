@@ -122,10 +122,12 @@ class SchedulerRun < ApplicationRecord
   def validate_planning_range
     return if scheduled_until.nil? || scheduled_on.nil?
 
+    # :greater_than_start_date is a Redmine core message (used for the
+    # issue due date), so it needs no key of its own here.
     if scheduled_until < scheduled_on
       errors.add(:scheduled_until, :greater_than_start_date)
     elsif planning_days.size > MAX_PLANNING_DAYS
-      errors.add(:scheduled_until, :invalid)
+      errors.add(:scheduled_until, :range_too_long, count: MAX_PLANNING_DAYS)
     end
   end
 end

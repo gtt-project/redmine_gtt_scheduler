@@ -1,5 +1,8 @@
 en:
   activerecord:
+    errors:
+      messages:
+        range_too_long: "must not make the range longer than %{count} days"
     attributes:
       scheduler_run:
         scheduled_on: Planning day
