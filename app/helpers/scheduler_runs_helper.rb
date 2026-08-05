@@ -8,7 +8,7 @@ module SchedulerRunsHelper
   def scheduler_travel(seconds)
     return '-' if seconds.nil?
 
-    "#{(seconds / 60.0).round} min"
+    l(:label_scheduler_travel_minutes, count: (seconds / 60.0).round)
   end
 
   def scheduler_run_status(run)
@@ -53,13 +53,17 @@ module SchedulerRunsHelper
   end
 
   def scheduler_timeline_bar(assignment, from, span)
-    left = ((assignment.starts_at - from) / span * 100).round(4)
+    # left is capped just short of 100 so the minimum width below never
+    # exceeds the remaining space: clamp raises when min > max, and a
+    # zero-duration stop exactly at the window end would otherwise take
+    # the page down.
+    left = ((assignment.starts_at - from) / span * 100).round(4).clamp(0, 99.6)
     width = ((assignment.ends_at - assignment.starts_at) / span * 100).round(4)
     {
       assignment: assignment,
-      left: left.clamp(0, 100),
+      left: left,
       # Keep a hairline visible for a zero-duration stop rather than nothing.
-      width: width.clamp(0.4, 100 - left.clamp(0, 100))
+      width: width.clamp(0.4, 100 - left)
     }
   end
 end

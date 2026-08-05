@@ -60,6 +60,19 @@ class SchedulerTimelineTest < ActionView::TestCase
     assert_operator timeline[:bars].first[:width], :>, 0
   end
 
+  # clamp raises when min > max; a zero-duration stop exactly at the window
+  # end used to produce clamp(0.4, 0) and take the whole run page down.
+  test 'a zero-duration stop at the window end renders instead of raising' do
+    a = assignment(1, Time.utc(2026, 8, 3, 9, 0), Time.utc(2026, 8, 3, 10, 0))
+    b = assignment(2, Time.utc(2026, 8, 3, 10, 0), Time.utc(2026, 8, 3, 10, 0), issue_id: 2)
+
+    timeline = scheduler_timeline([a, b])
+    bar = timeline[:bars].last
+
+    assert_operator bar[:width], :>, 0
+    assert_operator bar[:left] + bar[:width], :<=, 100.0
+  end
+
   test 'bars never overflow the track' do
     a = assignment(1, Time.utc(2026, 8, 3, 9, 0), Time.utc(2026, 8, 3, 17, 0))
     timeline = scheduler_timeline([a])
