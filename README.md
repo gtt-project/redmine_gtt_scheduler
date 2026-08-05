@@ -15,8 +15,9 @@ Early development, no release yet. Implemented and tested: resources,
 optimization runs, the VROOM adapter, the propose-then-apply workflow,
 per-resource route colours and toggles on the run map (with real road
 geometry when the solver is asked for it), an hour-level timeline, and
-locally derived diagnostics for unassigned issues. Skills, capacity and
-multi-day planning
+locally derived diagnostics for unassigned issues, and skills matching
+(an issue requiring skills is only assigned to a resource that has all
+of them). Capacity, working-hour patterns and multi-day planning
 ([#4](https://github.com/gtt-project/redmine_gtt_scheduler/issues/4))
 and pickup/delivery
 ([#5](https://github.com/gtt-project/redmine_gtt_scheduler/issues/5))
@@ -77,8 +78,9 @@ sure a worker is running or runs will stay in "solving".
    with, and starts a run. All open issues of the project that have a
    location are planned.
 2. Issue time windows come from redmine_issue_datetime, service time
-   from `estimated_hours` (with a configurable default), and priority
-   from the issue priority.
+   from `estimated_hours` (with a configurable default), priority from
+   the issue priority, and required skills from a configurable issue
+   custom field.
 3. The solver proposes a schedule. Nothing is written to the issues
    yet. Issues that could not be planned are listed with a locally
    derived reason (VROOM itself does not report one). The run page shows
