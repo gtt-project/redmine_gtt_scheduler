@@ -23,6 +23,16 @@
   <em class="info"><%= l(:text_scheduler_skills_field_hint) %></em>
 </p>
 <p>
+  <label><%= l(:label_scheduler_capacity_field) %></label>
+  <%= select_tag 'settings[capacity_custom_field_id]',
+                 options_for_select(
+                   [[l(:label_scheduler_skills_disabled), '']] +
+                     IssueCustomField.where(field_format: 'int').sorted.map { |f| [f.name, f.id.to_s] },
+                   RedmineGttScheduler.settings['capacity_custom_field_id']
+                 ) %>
+  <em class="info"><%= l(:text_scheduler_capacity_field_hint) %></em>
+</p>
+<p>
   <label><%= l(:label_scheduler_request_geometry) %></label>
   <%= hidden_field_tag 'settings[request_geometry]', '0' %>
   <%= check_box_tag 'settings[request_geometry]', '1', RedmineGttScheduler.request_geometry? %>

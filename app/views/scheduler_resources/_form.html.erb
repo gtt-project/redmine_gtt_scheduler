@@ -12,6 +12,12 @@
   <p class="info"><%= l(:text_scheduler_resource_end_hint) %></p>
   <p><%= f.time_field :work_starts, label: :field_work_starts %></p>
   <p><%= f.time_field :work_ends, label: :field_work_ends %></p>
+  <% if RedmineGttScheduler.capacity_custom_field %>
+    <p>
+      <%= f.number_field :capacity, min: 0, label: :field_scheduler_capacity %>
+      <em class="info"><%= l(:text_scheduler_capacity_hint) %></em>
+    </p>
+  <% end %>
   <% if (skills_field = RedmineGttScheduler.skills_custom_field) %>
     <p>
       <label><%= l(:field_scheduler_skills) %></label>
