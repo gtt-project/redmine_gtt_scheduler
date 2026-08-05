@@ -16,7 +16,10 @@ class SolverTest < ActiveSupport::TestCase
     @day = Date.new(2026, 8, 3)
     enable_scheduler(@project)
     factory = RGeo::Geographic.spherical_factory(srid: 4326)
-    Issue.where(project_id: @project.id).update_all(geom: nil)
+    # Dates cleared too: fixture dates are relative to today and would push
+    # the issue outside the fixed planning day at some point (#22).
+    Issue.where(project_id: @project.id)
+         .update_all(geom: nil, start_date: nil, due_date: nil)
     @issue = Issue.find(1)
     @issue.update_columns(geom: factory.point(139.7, 35.68).to_s)
     @resource = build_resource(@project)
@@ -77,6 +80,23 @@ class SolverTest < ActiveSupport::TestCase
 
     assert_not called
     assert_equal SchedulerRun::FAILED, run.reload.status
+  end
+
+  # Anything escaping the job would otherwise leave the run in "solving"
+  # forever, with the UI telling the user to keep reloading.
+  test 'an unexpected crash fails the run instead of leaving it solving' do
+    run = build_run(@project, @user, @day)
+    crashing_adapter = Class.new(RedmineGttScheduler::Scheduler::Adapter) do
+      def solve(_problem)
+        raise 'boom'
+      end
+    end.new
+
+    Solver.call(run, adapter: crashing_adapter)
+
+    run.reload
+    assert_equal SchedulerRun::FAILED, run.status
+    assert_includes run.error_message, 'boom'
   end
 
   test 'solving again replaces the previous assignments' do

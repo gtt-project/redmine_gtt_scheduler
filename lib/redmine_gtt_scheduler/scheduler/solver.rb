@@ -28,6 +28,16 @@ module RedmineGttScheduler
       rescue Adapter::SolverError => e
         fail_run(e.message)
         @run
+      rescue StandardError => e
+        # Anything else escaping the background job would leave the run in
+        # "solving" forever, with the UI telling the user to keep reloading.
+        # The run must always end in a terminal status.
+        Rails.logger.error(
+          "[Scheduler] run #{@run.id} crashed: #{e.class}: #{e.message}\n" \
+          "#{e.backtrace&.first(10)&.join("\n")}"
+        )
+        fail_run("#{e.class}: #{e.message}")
+        @run
       end
 
       private
