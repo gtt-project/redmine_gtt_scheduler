@@ -26,6 +26,33 @@ class SchedulerRunsControllerTest < Redmine::ControllerTest
     assert_select "a[href=?]", "/projects/#{@project.identifier}/scheduler_runs/#{run.id}"
   end
 
+  test 'index paginates instead of capping the list' do
+    with_settings per_page_options: '1,25' do
+      3.times { |i| build_run(@project, @user, Date.new(2026, 8, 3) + i) }
+
+      get :index, params: {project_id: @project.identifier, per_page: 1, page: 2}
+
+      assert_response :success
+      # Newest first, so page 2 at one per page is the second-newest run.
+      assert_select 'table.list tbody tr', count: 1
+      assert_select 'span.pagination'
+    end
+  end
+
+  test 'index shows the assignment count of a run' do
+    resource = build_resource(@project)
+    run = build_run(@project, @user, Date.new(2026, 8, 3), status: SchedulerRun::PROPOSED)
+    run.scheduler_assignments.create!(
+      issue: Issue.find(1), scheduler_resource: resource, sequence: 1,
+      starts_at: Time.utc(2026, 8, 3, 9, 0), ends_at: Time.utc(2026, 8, 3, 10, 0)
+    )
+
+    get :index, params: {project_id: @project.identifier}
+
+    assert_response :success
+    assert_select 'td', text: '1', minimum: 1
+  end
+
   test 'new renders the run form' do
     get :new, params: {project_id: @project.identifier}
 
