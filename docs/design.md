@@ -64,9 +64,12 @@ RedmineGttScheduler::Scheduler.register_adapter('my_solver', MySolverAdapter)
 
 A backend implements `solve(problem)` and returns a
 `Scheduler::Solution`; both are plain Ruby objects, independent of any
-backend, so a backend never needs to know about Redmine models. An
-unknown configured backend fails the run with a clear message instead
-of crashing the job.
+backend, so a backend never needs to know about Redmine models. The
+solver instantiates the class with `new` and no arguments, so an
+adapter must be constructible without parameters and read its
+configuration (URLs, credentials) from settings inside `solve`, the way
+`VroomExpressAdapter` reads the plugin settings. An unknown configured
+backend fails the run with a clear message instead of crashing the job.
 
 Backends:
 

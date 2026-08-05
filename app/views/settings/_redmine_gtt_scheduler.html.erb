@@ -5,11 +5,17 @@
 </p>
 <p>
   <label><%= l(:label_scheduler_backend) %></label>
-  <%= select_tag 'settings[solver_backend]',
-                 options_for_select(
-                   RedmineGttScheduler::Scheduler.adapters.keys.map { |name| [name.humanize, name] },
-                   RedmineGttScheduler.solver_backend
-                 ) %>
+  <%
+    backends = RedmineGttScheduler::Scheduler.adapters.keys.map { |name| [name.humanize, name] }
+    current = RedmineGttScheduler.solver_backend
+    # A configured backend that is no longer registered (its plugin was
+    # removed) stays visible and editable instead of silently vanishing
+    # from the form while runs keep failing.
+    unless RedmineGttScheduler::Scheduler.adapter_for(current)
+      backends << [l(:label_scheduler_backend_missing, name: current), current]
+    end
+  %>
+  <%= select_tag 'settings[solver_backend]', options_for_select(backends, current) %>
   <em class="info"><%= l(:text_scheduler_backend_hint) %></em>
 </p>
 <p>

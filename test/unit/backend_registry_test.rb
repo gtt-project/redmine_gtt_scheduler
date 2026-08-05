@@ -37,6 +37,15 @@ class BackendRegistryTest < ActiveSupport::TestCase
     Scheduler.adapters.delete('recording')
   end
 
+  test 're-registering a name replaces the class and keeps working' do
+    Scheduler.register_adapter('recording', Scheduler::VroomExpressAdapter)
+    # The replacement is logged (different class name) but last wins,
+    # matching load-order semantics.
+    Scheduler.register_adapter('recording', RecordingAdapter)
+
+    assert_equal RecordingAdapter, Scheduler.adapter_for('recording')
+  end
+
   test 'vroom-express is registered as the default' do
     assert_equal Scheduler::VroomExpressAdapter,
                  Scheduler.adapter_for(Scheduler::DEFAULT_ADAPTER_NAME)

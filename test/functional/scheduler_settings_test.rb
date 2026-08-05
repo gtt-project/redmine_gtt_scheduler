@@ -27,6 +27,19 @@ class SchedulerSettingsTest < Redmine::ControllerTest
     assert_equal 'http://vroom:3000', RedmineGttScheduler.vroom_url
   end
 
+  # A backend whose plugin was removed must stay visible and editable in
+  # the form instead of silently vanishing while runs keep failing.
+  test 'a configured backend that is not installed stays visible' do
+    Setting.plugin_redmine_gtt_scheduler =
+      Setting.plugin_redmine_gtt_scheduler.merge('solver_backend' => 'gone_solver')
+
+    get :plugin, params: {id: 'redmine_gtt_scheduler'}
+
+    assert_response :success
+    assert_select 'select[name=?] option[value=?][selected=selected]',
+                  'settings[solver_backend]', 'gone_solver'
+  end
+
   test 'saving the plugin settings works' do
     post :plugin, params: {
       id: 'redmine_gtt_scheduler',

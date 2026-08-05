@@ -10,7 +10,18 @@ module RedmineGttScheduler
   module Scheduler
     DEFAULT_ADAPTER_NAME = 'vroom_express'.freeze
 
+    # Re-registering a name with a different class is logged: two plugins
+    # fighting over one name is a misconfiguration that would otherwise
+    # be invisible (last load order wins). Compared by class name, not
+    # identity, because a development reload recreates the class object.
     def self.register_adapter(name, klass)
+      existing = adapters[name.to_s]
+      if existing && existing.name != klass.name
+        Rails.logger.warn(
+          "[Scheduler] solver backend #{name.inspect} re-registered: " \
+          "#{existing.name} replaced by #{klass.name}"
+        )
+      end
       adapters[name.to_s] = klass
     end
 
