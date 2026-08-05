@@ -56,6 +56,16 @@ module RedmineGttScheduler
     field if field&.field_format == 'list'
   end
 
+  # The integer issue custom field carrying each issue's load, or nil
+  # when the capacity feature is switched off.
+  def self.capacity_custom_field
+    id = settings['capacity_custom_field_id'].to_i
+    return nil unless id.positive?
+
+    field = IssueCustomField.find_by(id: id)
+    field if field&.field_format == 'int'
+  end
+
   # All schedule times are anchored in the same reference zone that
   # redmine_issue_datetime uses for its date mirror. That plugin is a hard
   # dependency, so say so clearly instead of raising NameError deep in a
