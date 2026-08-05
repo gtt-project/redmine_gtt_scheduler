@@ -116,6 +116,20 @@ class CapacityTest < ActiveSupport::TestCase
     assert_equal [5], request['vehicles'].first['capacity']
   end
 
+  test 'a negative capacity is rejected by validation and clamped if stored' do
+    resource = build_resource(@project, capacity: 5)
+    resource.capacity = -3
+    assert_not resource.valid?
+
+    # Written past the validations, it must still not reach the solver.
+    resource.update_column(:capacity, -3)
+    field = create_load_field
+    set_load(@issue, field, '2')
+    problem = Builder.new(build_run(@project, @user, @day)).build
+
+    assert_equal [0], problem.vehicles.first.capacity
+  end
+
   test 'a load no resource can carry is diagnosed as such' do
     field = create_load_field
     set_load(@issue, field, '10')

@@ -8,6 +8,10 @@ module RedmineGttScheduler
       def initialize(run)
         @run = run
         @zone = RedmineGttScheduler.reference_zone
+        # Looked up once per build: both accessors hit the database, and
+        # they are consulted for every issue.
+        @skills_field = RedmineGttScheduler.skills_custom_field
+        @capacity_field = RedmineGttScheduler.capacity_custom_field
         date = run.scheduled_on
         @day_start = @zone.local(date.year, date.month, date.day)
         @day_end = @day_start + 1.day
@@ -33,9 +37,7 @@ module RedmineGttScheduler
                       .includes(:issue_datetime, :priority)
           # Custom values are only read by the skills and capacity
           # features, so only preload them when one is on.
-          if RedmineGttScheduler.skills_custom_field || RedmineGttScheduler.capacity_custom_field
-            scope = scope.includes(:custom_values)
-          end
+          scope = scope.includes(:custom_values) if @skills_field || @capacity_field
           scope.to_a
         end
       end
@@ -52,7 +54,7 @@ module RedmineGttScheduler
       # anywhere: renaming a custom field value cannot corrupt stored
       # data, and a name no longer in the vocabulary still matches.
       def skill_id_map
-        return {} if RedmineGttScheduler.skills_custom_field.nil?
+        return {} if @skills_field.nil?
 
         names = plannable_issues.flat_map { |issue| issue_skill_names(issue) } |
                 resources.flat_map(&:skills)
@@ -63,10 +65,9 @@ module RedmineGttScheduler
       # field. A multi-value field yields an array, a single-value field
       # a string; both normalize here.
       def issue_skill_names(issue)
-        field = RedmineGttScheduler.skills_custom_field
-        return [] if field.nil?
+        return [] if @skills_field.nil?
 
-        Array(issue.custom_field_value(field)).map(&:to_s).reject(&:blank?)
+        Array(issue.custom_field_value(@skills_field)).map(&:to_s).reject(&:blank?)
       end
 
       def build_job(issue, excluded)
@@ -98,21 +99,26 @@ module RedmineGttScheduler
       # would constrain nothing, and the solver requires every job and
       # vehicle to carry it once any does.
       def capacity_active?
-        RedmineGttScheduler.capacity_custom_field.present? &&
+        @capacity_field.present? &&
           plannable_issues.any? { |issue| load_of(issue).positive? }
       end
 
       def load_of(issue)
-        field = RedmineGttScheduler.capacity_custom_field
-        return 0 if field.nil?
+        return 0 if @capacity_field.nil?
 
-        [issue.custom_field_value(field).to_i, 0].max
+        [issue.custom_field_value(@capacity_field).to_i, 0].max
       end
 
       # An unlimited resource still needs a number the solver accepts, so
       # it gets the total load of all jobs, which no route can exceed.
       def unlimited_capacity
         @unlimited_capacity ||= [plannable_issues.sum { |issue| load_of(issue) }, 1].max
+      end
+
+      # The model validates capacity >= 0, but a value written past the
+      # validations must still not reach the solver as a negative.
+      def capacity_of(resource)
+        resource.capacity ? [resource.capacity, 0].max : unlimited_capacity
       end
 
       def resources
@@ -130,7 +136,7 @@ module RedmineGttScheduler
               epoch(combine_day(resource.work_ends))
             ],
             skills: skill_ids_of(resource.skills),
-            capacity: (@capacity_active ? [resource.capacity || unlimited_capacity] : nil)
+            capacity: (@capacity_active ? [capacity_of(resource)] : nil)
           )
         end
       end
