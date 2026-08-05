@@ -12,6 +12,20 @@
   <p class="info"><%= l(:text_scheduler_resource_end_hint) %></p>
   <p><%= f.time_field :work_starts, label: :field_work_starts %></p>
   <p><%= f.time_field :work_ends, label: :field_work_ends %></p>
+  <p>
+    <label><%= l(:field_scheduler_working_days) %></label>
+    <%# The hidden blank lets an all-unchecked form clear the list. %>
+    <%= hidden_field_tag 'scheduler_resource[working_days][]', '' %>
+    <%# date.day_names is Sunday-first, so ISO weekday d maps to d % 7. %>
+    <% (1..7).each do |day| %>
+      <label class="block">
+        <%= check_box_tag 'scheduler_resource[working_days][]', day,
+                          f.object.working_days.include?(day) %>
+        <%= l(:'date.day_names')[day % 7] %>
+      </label>
+    <% end %>
+    <em class="info"><%= l(:text_scheduler_working_days_hint) %></em>
+  </p>
   <% if RedmineGttScheduler.capacity_custom_field %>
     <p>
       <%= f.number_field :capacity, min: 0, label: :field_scheduler_capacity %>
