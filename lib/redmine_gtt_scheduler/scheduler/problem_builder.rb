@@ -116,7 +116,7 @@ module RedmineGttScheduler
         ambiguous = counts.select { |id, n| n > 1 }.keys
 
         shipments = []
-        removed = []
+        removed = Set.new
         relations.each do |relation|
           pair = [relation.issue_from_id, relation.issue_to_id]
           if pair.intersect?(ambiguous)
@@ -124,7 +124,7 @@ module RedmineGttScheduler
           elsif pair.all? { |id| jobs_by_id.key?(id) }
             shipments << build_shipment(jobs_by_id[relation.issue_from_id],
                                         jobs_by_id[relation.issue_to_id])
-            removed.concat(pair)
+            removed.merge(pair)
             next
           else
             # The partner is not part of the problem (closed, without
