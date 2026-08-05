@@ -3,6 +3,7 @@ ja:
     errors:
       messages:
         range_too_long: "は計画期間が%{count}日を超えないようにしてください"
+        scheduler_break_incomplete: 休憩には開始・終了・時間のすべてを設定するか、すべて空欄にしてください。
     attributes:
       scheduler_run:
         scheduled_on: 計画日
@@ -51,6 +52,10 @@ ja:
   text_scheduler_unassigned_over_capacity: 積載量がどのリソースの容量よりも大きいです
   field_scheduler_working_days: 勤務曜日
   text_scheduler_working_days_hint: このリソースが勤務する曜日です。チェックがない場合は毎日勤務として扱われます。
+  field_scheduler_break_starts: 休憩時間帯（開始）
+  field_scheduler_break_ends: 休憩時間帯（終了）
+  field_scheduler_break_minutes: 休憩時間（分）
+  text_scheduler_break_hint: 指定した時間帯の中で、この長さの休憩が毎日計画されます。休憩が不要な場合は3つとも空欄にします。
   button_scheduler_solve: 計算する
   button_scheduler_apply: チケットに適用
   button_scheduler_discard: 破棄

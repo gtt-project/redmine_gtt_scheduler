@@ -54,7 +54,9 @@ class SchedulerResourcesController < ApplicationController
   def resource_params
     params.require(:scheduler_resource).permit(
       :name, :user_id, :start_lng, :start_lat, :end_lng, :end_lat,
-      :work_starts, :work_ends, :active, :capacity, skills: [], working_days: []
+      :work_starts, :work_ends, :active, :capacity,
+      :break_starts, :break_ends, :break_minutes,
+      skills: [], working_days: []
     )
   end
 end
