@@ -26,10 +26,15 @@ module RedmineGttScheduler
       private
 
       def plannable_issues
-        @plannable_issues ||= @run.project.issues.open
-                                  .where.not(geom: nil)
-                                  .includes(:issue_datetime, :priority, :custom_values)
-                                  .to_a
+        @plannable_issues ||= begin
+          scope = @run.project.issues.open
+                      .where.not(geom: nil)
+                      .includes(:issue_datetime, :priority)
+          # Custom values are only read when the skills feature is on, so
+          # only preload them then.
+          scope = scope.includes(:custom_values) if RedmineGttScheduler.skills_custom_field
+          scope.to_a
+        end
       end
 
       def build_jobs(excluded)
