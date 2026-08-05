@@ -25,6 +25,8 @@ ja:
   label_scheduler_status_applied: 適用済み
   label_scheduler_status_failed: 失敗
   label_scheduler_status_discarded: 破棄
+  label_scheduler_backend: ソルバーバックエンド
+  text_scheduler_backend_hint: バックエンドはプラグインに自身を登録します。vroom-express は本プラグインに同梱されています。追加方法は設計ドキュメントを参照してください。
   label_scheduler_vroom_url: VROOMサーバーURL
   label_scheduler_default_service: デフォルト作業時間（分）
   label_scheduler_timeout: ソルバーのタイムアウト（秒）

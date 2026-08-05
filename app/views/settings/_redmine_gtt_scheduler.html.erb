@@ -4,6 +4,15 @@
   <em class="info"><%= l(:text_scheduler_vroom_url_hint) %></em>
 </p>
 <p>
+  <label><%= l(:label_scheduler_backend) %></label>
+  <%= select_tag 'settings[solver_backend]',
+                 options_for_select(
+                   RedmineGttScheduler::Scheduler.adapters.keys.map { |name| [name.humanize, name] },
+                   RedmineGttScheduler.solver_backend
+                 ) %>
+  <em class="info"><%= l(:text_scheduler_backend_hint) %></em>
+</p>
+<p>
   <label><%= l(:label_scheduler_default_service) %></label>
   <%= text_field_tag 'settings[default_service_minutes]', RedmineGttScheduler.settings['default_service_minutes'], size: 6 %>
   <em class="info"><%= l(:text_scheduler_default_service_hint) %></em>
