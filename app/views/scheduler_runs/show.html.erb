@@ -75,7 +75,14 @@
         <% day_assignments.sort_by(&:sequence).each do |assignment| %>
           <tr>
             <td><%= assignment.sequence %></td>
-            <td><%= link_to_issue(assignment.issue) if assignment.issue %></td>
+            <td>
+              <%= link_to_issue(assignment.issue) if assignment.issue %>
+              <% if assignment.kind %>
+                <span class="scheduler-kind scheduler-kind-<%= assignment.kind %>">
+                  <%= l(:"label_scheduler_#{assignment.kind}") %>
+                </span>
+              <% end %>
+            </td>
             <td><%= scheduler_time(assignment.starts_at) %></td>
             <td><%= scheduler_time(assignment.ends_at) %></td>
             <td><%= scheduler_travel(assignment.travel_seconds) %></td>

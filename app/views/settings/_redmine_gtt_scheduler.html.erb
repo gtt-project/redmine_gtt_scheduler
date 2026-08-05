@@ -33,6 +33,16 @@
   <em class="info"><%= l(:text_scheduler_capacity_field_hint) %></em>
 </p>
 <p>
+  <label><%= l(:label_scheduler_shipment_relation) %></label>
+  <%= select_tag 'settings[shipment_relation_type]',
+                 options_for_select(
+                   [[l(:label_scheduler_skills_disabled), '']] +
+                     RedmineGttScheduler::SHIPMENT_RELATION_TYPES.map { |t| [l(IssueRelation::TYPES[t][:name]), t] },
+                   RedmineGttScheduler.settings['shipment_relation_type']
+                 ) %>
+  <em class="info"><%= l(:text_scheduler_shipment_relation_hint) %></em>
+</p>
+<p>
   <label><%= l(:label_scheduler_request_geometry) %></label>
   <%= hidden_field_tag 'settings[request_geometry]', '0' %>
   <%= check_box_tag 'settings[request_geometry]', '1', RedmineGttScheduler.request_geometry? %>

@@ -50,6 +50,12 @@ en:
   text_scheduler_capacity_field_hint: An integer issue custom field carrying each issue's load. Leave disabled if you do not use capacity limits.
   text_scheduler_capacity_hint: How much load this resource can carry in one run. Leave empty for no limit.
   text_scheduler_unassigned_over_capacity: its load is larger than any resource's capacity
+  label_scheduler_shipment_relation: Shipment relation
+  text_scheduler_shipment_relation_hint: "Two issues joined by this relation form a pickup and delivery pair: the relation's \"from\" issue is picked up before its partner is delivered, by the same resource. Leave disabled if you do not plan transports."
+  label_scheduler_pickup: Pickup
+  label_scheduler_delivery: Delivery
+  text_scheduler_excluded_ambiguous_shipment: part of more than one shipment relation, so it cannot be paired
+  text_scheduler_excluded_shipment_partner_excluded: its shipment partner is not part of this plan
   field_scheduler_working_days: Working days
   text_scheduler_working_days_hint: Days this resource works. No day checked means every day.
   field_scheduler_break_starts: Break window from

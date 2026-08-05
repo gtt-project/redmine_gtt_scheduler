@@ -50,6 +50,12 @@ ja:
   text_scheduler_capacity_field_hint: 各チケットの積載量を表す整数形式のチケットカスタムフィールドを選択します。容量制限を使わない場合は「使用しない」のままにします。
   text_scheduler_capacity_hint: このリソースが1回の実行で運べる量です。空欄にすると無制限になります。
   text_scheduler_unassigned_over_capacity: 積載量がどのリソースの容量よりも大きいです
+  label_scheduler_shipment_relation: 輸送ペアの関連
+  text_scheduler_shipment_relation_hint: この関連で結ばれた2つのチケットは集荷と配達のペアになります。関連の「元」チケットを集荷した後、同じリソースが相手チケットへ配達します。輸送を計画しない場合は「使用しない」のままにします。
+  label_scheduler_pickup: 集荷
+  label_scheduler_delivery: 配達
+  text_scheduler_excluded_ambiguous_shipment: 複数の輸送関連に含まれているためペアを決定できません
+  text_scheduler_excluded_shipment_partner_excluded: 輸送ペアの相手チケットがこの計画に含まれていません
   field_scheduler_working_days: 勤務曜日
   text_scheduler_working_days_hint: このリソースが勤務する曜日です。チェックがない場合は毎日勤務として扱われます。
   field_scheduler_break_starts: 休憩時間帯（開始）
