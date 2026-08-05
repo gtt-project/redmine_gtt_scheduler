@@ -22,7 +22,9 @@ Redmine::Plugin.register :redmine_gtt_scheduler do
              # Empty = skills matching off.
              'skills_custom_field_id' => '',
              # Empty = capacity limits off.
-             'capacity_custom_field_id' => ''
+             'capacity_custom_field_id' => '',
+             # Empty = shipments off.
+             'shipment_relation_type' => ''
            }
 
   project_module :gtt_scheduler do

@@ -66,6 +66,18 @@ module RedmineGttScheduler
     field if field&.field_format == 'int'
   end
 
+  # Relation types that may mark a shipment pair. "precedes" is
+  # deliberately not offered: Redmine core attaches date-shifting
+  # semantics to it, and the scheduler must not fight those.
+  SHIPMENT_RELATION_TYPES = %w[blocks relates].freeze
+
+  # The issue relation type marking a pickup/delivery pair (the pickup
+  # issue is the relation's "from" side), or nil when shipments are off.
+  def self.shipment_relation_type
+    type = settings['shipment_relation_type'].to_s
+    type if SHIPMENT_RELATION_TYPES.include?(type)
+  end
+
   # All schedule times are anchored in the same reference zone that
   # redmine_issue_datetime uses for its date mirror. That plugin is a hard
   # dependency, so say so clearly instead of raising NameError deep in a
